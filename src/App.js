@@ -7,12 +7,19 @@ import "./index.css";
 function App() {
   const [cart, setCart] = useState([]);
 
-  const addToCart = (product) => setCart([...cart, product]);
-  const removeFromCart = (product) =>
-    setCart(cart.filter((item) => item.id !== product.id));
+  // Agregar producto al carrito
+  const addToCart = (product) => {
+    setCart((prev) => [...prev, product]);
+  };
+
+  // Quitar producto del carrito
+  const removeFromCart = (productId) => {
+    setCart((prev) => prev.filter((item) => item.id !== productId));
+  };
 
   return (
     <div>
+      {/* Navbar */}
       <nav>
         <h2>Travel Store</h2>
         <ul>
@@ -23,17 +30,32 @@ function App() {
         </ul>
       </nav>
 
+      {/* Header */}
       <header>
         <h1>Bienvenido a Travel Store</h1>
         <p>Encuentra los mejores paquetes de viajes a todo el mundo</p>
       </header>
 
-      <main>
-        <ProductList addToCart={addToCart} />
-        <Cart cart={cart} removeFromCart={removeFromCart} />
-        {cart.length > 0 && <CheckoutForm cart={cart} />}
+      {/* Main content */}
+      <main
+        style={{
+          display: "flex",
+          gap: "20px",
+          flexWrap: "wrap",
+          padding: "20px",
+        }}
+      >
+        <div style={{ flex: 3 }}>
+          <ProductList addToCart={addToCart} />
+        </div>
+
+        <div style={{ flex: 1, minWidth: "300px" }}>
+          <Cart cart={cart} removeFromCart={removeFromCart} />
+          {cart.length > 0 && <CheckoutForm cart={cart} />}
+        </div>
       </main>
 
+      {/* Footer */}
       <footer>
         <p>© 2025 Travel Store - Todos los derechos reservados</p>
       </footer>

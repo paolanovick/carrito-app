@@ -1,44 +1,24 @@
-import React, { useState } from "react";
+import React from "react";
 
-const CheckoutForm = ({ cart }) => {
-  const [form, setForm] = useState({ name: "", email: "", address: "" });
-
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Orden enviada:", { ...form, cart });
-    alert("Gracias por tu compra!");
-  };
-
+const Cart = ({ cart, removeFromCart }) => {
   return (
-    <form onSubmit={handleSubmit}>
-      <h3>Checkout</h3>
-      <input
-        name="name"
-        placeholder="Nombre"
-        value={form.name}
-        onChange={handleChange}
-        required
-      />
-      <input
-        name="email"
-        placeholder="Email"
-        value={form.email}
-        onChange={handleChange}
-        required
-      />
-      <input
-        name="address"
-        placeholder="Dirección"
-        value={form.address}
-        onChange={handleChange}
-        required
-      />
-      <button type="submit">Enviar Orden</button>
-    </form>
+    <div className="cart">
+      <h3>Carrito de Compras</h3>
+      {cart.length === 0 ? (
+        <p>El carrito está vacío.</p>
+      ) : (
+        cart.map((item) => (
+          <div className="cart-item" key={item.id}>
+            <p>
+              <strong>{item.title}</strong>
+            </p>
+            <p>Precio: ${item.price.toLocaleString()}</p>
+            <button onClick={() => removeFromCart(item.id)}>Eliminar</button>
+          </div>
+        ))
+      )}
+    </div>
   );
 };
 
-export default CheckoutForm;
+export default Cart;
