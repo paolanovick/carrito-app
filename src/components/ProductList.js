@@ -6,22 +6,19 @@ const ProductList = ({ addToCart }) => {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    fetch("/allseasons.xml")
+    fetch("https://travel-tool.net/admin/xml/allseasons.xml")
       .then((res) => res.text())
       .then((xmlString) => {
-        const cleanXmlString = xmlString.replace(/^\uFEFF/, "");
         const parser = new XMLParser({
           ignoreAttributes: false,
           attributeNamePrefix: "",
         });
-        const jsonData = parser.parse(cleanXmlString);
-
-        console.log(JSON.stringify(jsonData, null, 2)); // para ver la estructura exacta
+        const jsonData = parser.parse(xmlString);
 
         let paquetes =
           jsonData.root?.paquetes?.paquete || jsonData.paquetes?.paquete;
         if (!paquetes) {
-          console.error("XML no tiene paquetes");
+          console.error("XML no tiene paquetes o no es accesible");
           return;
         }
 
@@ -29,30 +26,22 @@ const ProductList = ({ addToCart }) => {
 
         const formattedProducts = paquetes.map((p) => ({
           id: p.paquete_externo_id,
-          title: p.titulo?.replace(/<[^>]+>/g, ""),
-          description: p.incluye?.replace(/<[^>]+>/g, ""),
+          title: p.titulo?.replace(/<[^>]+>/g, "") || "Sin título",
+          description: p.incluye?.replace(/<[^>]+>/g, "") || "Sin descripción",
           price: parseFloat(p.doble_precio) || 0,
           image:
             p.imagen_principal ||
             "https://via.placeholder.com/220x150?text=Sin+Imagen",
-          url: p.url,
+          url: p.url?.["#cdata-section"] || "#",
         }));
 
         setProducts(formattedProducts);
       })
-      .catch((err) => console.error("Error al cargar XML:", err));
+      .catch((err) => console.error("Error al convertir XML a JSON:", err));
   }, []);
 
-
   return (
-    <div
-      className="product-list"
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill,minmax(250px,1fr))",
-        gap: "20px",
-      }}
-    >
+    <div className="product-list">
       {products.map((product) => (
         <ProductCard key={product.id} product={product} addToCart={addToCart} />
       ))}

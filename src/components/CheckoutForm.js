@@ -1,52 +1,42 @@
 import React, { useState } from "react";
 
-const CheckoutForm = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+const CheckoutForm = ({ cart }) => {
+  const [form, setForm] = useState({ name: "", email: "", address: "" });
+
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert(`Compra completada!\nNombre: ${name}\nEmail: ${email}`);
+    console.log("Orden enviada:", { ...form, cart });
+    alert("Gracias por tu compra!");
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ marginTop: "20px" }}>
+    <form onSubmit={handleSubmit}>
       <h3>Checkout</h3>
       <input
+        name="name"
         placeholder="Nombre"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        style={{
-          display: "block",
-          marginBottom: "10px",
-          width: "100%",
-          padding: "5px",
-        }}
+        value={form.name}
+        onChange={handleChange}
+        required
       />
       <input
+        name="email"
         placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        style={{
-          display: "block",
-          marginBottom: "10px",
-          width: "100%",
-          padding: "5px",
-        }}
+        value={form.email}
+        onChange={handleChange}
+        required
       />
-      <button
-        type="submit"
-        style={{
-          padding: "5px 10px",
-          background: "#1976d2",
-          color: "#fff",
-          border: "none",
-          borderRadius: "4px",
-          cursor: "pointer",
-        }}
-      >
-        Comprar
-      </button>
+      <input
+        name="address"
+        placeholder="Dirección"
+        value={form.address}
+        onChange={handleChange}
+        required
+      />
+      <button type="submit">Enviar Orden</button>
     </form>
   );
 };
