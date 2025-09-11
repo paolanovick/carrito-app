@@ -1,12 +1,29 @@
 import React, { useState } from "react";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import ProductList from "./components/ProductList";
 import Cart from "./components/Cart";
 import CheckoutForm from "./components/CheckoutForm";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+import Banner from "./components/Banner";
 
 function App() {
   const [cartItems, setCartItems] = useState([]);
+
+  // Banner slides (pueden ser URLs de imágenes de tu XML o fijas)
+  const slides = [
+    {
+      title: "Ofertas de verano",
+      image: "https://via.placeholder.com/1200x300?text=Verano",
+    },
+    {
+      title: "Escapadas de invierno",
+      image: "https://via.placeholder.com/1200x300?text=Invierno",
+    },
+    {
+      title: "Paquetes familiares",
+      image: "https://via.placeholder.com/1200x300?text=Familia",
+    },
+  ];
 
   const addToCart = (product) => {
     setCartItems((prevItems) => {
@@ -49,11 +66,8 @@ function App() {
   return (
     <div className="App">
       <Navbar cartCount={cartItems.length} />
-      <header style={{ textAlign: "center", padding: "20px" }}>
-        <h1>Travel Connect - Paquetes de Viaje</h1>
-        <p>Encuentra las mejores ofertas para tus vacaciones</p>
-      </header>
-      <main style={{ display: "flex", gap: "20px", padding: "0 20px" }}>
+      <Banner slides={slides} />
+      <main style={{ display: "flex", gap: "20px", padding: "0 40px" }}>
         <div style={{ flex: 3 }}>
           <ProductList addToCart={addToCart} />
         </div>
