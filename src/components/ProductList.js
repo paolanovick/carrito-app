@@ -15,12 +15,20 @@ const ProductList = ({ addToCart }) => {
         });
         const jsonData = parser.parse(xmlString);
 
-        if (!jsonData.root?.paquetes?.paquete) {
+        console.log("JSON Parseado:", jsonData); // <--- Para ver la estructura exacta
+
+        // Verificar paquetes dentro de root o directamente
+        let paquetes;
+        if (jsonData.root?.paquetes?.paquete) {
+          paquetes = jsonData.root.paquetes.paquete;
+        } else if (jsonData.paquetes?.paquete) {
+          paquetes = jsonData.paquetes.paquete;
+        } else {
           console.error("XML no tiene paquetes");
           return;
         }
 
-        let paquetes = jsonData.root.paquetes.paquete;
+        // Asegurarse de que siempre sea un array
         if (!Array.isArray(paquetes)) paquetes = [paquetes];
 
         const formattedProducts = paquetes.map((p) => ({
