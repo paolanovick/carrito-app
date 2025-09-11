@@ -4,26 +4,26 @@ const ProductCard = ({ product, addToCart }) => {
   return (
     <div className="product-card">
       <img
-        src={product.imagen}
+        src={product.imagen_principal || "https://via.placeholder.com/200"}
         alt={product.titulo}
-        style={{ width: "100%", height: "150px", objectFit: "cover" }}
+        style={{
+          width: "100%",
+          height: "150px",
+          objectFit: "cover",
+          borderRadius: "4px",
+        }}
       />
       <h3>{product.titulo}</h3>
       <p>
-        {product.ciudad}, {product.pais}
+        {product.destinoCiudad}, {product.destinoPais} - {product.cant_noches}{" "}
+        noches
       </p>
-      <p>Noches: {product.noches}</p>
-      <p>
-        Precio doble:{" "}
-        {product.precioDoble.toLocaleString("es-AR", {
-          style: "currency",
-          currency: "ARS",
-        })}
-      </p>
-      <button onClick={() => addToCart(product)}>Agregar al carrito</button>
+      <p>Precio doble: ${product.doble_precio}</p>
       <a href={product.url} target="_blank" rel="noopener noreferrer">
-        Ver detalles
+        Ver paquete
       </a>
+      <br />
+      <button onClick={() => addToCart(product)}>Añadir al carrito</button>
     </div>
   );
 };
