@@ -10,12 +10,18 @@ const ProductList = ({ addToCart }) => {
   useEffect(() => {
     const fetchXML = async () => {
       try {
-        const response = await fetch(
+        // Usamos AllOrigins para evitar CORS
+        const proxyUrl = "https://api.allorigins.win/get?url=";
+        const targetUrl = encodeURIComponent(
           "https://travel-tool.net/admin/xml/allseasons.xml"
         );
+
+        const response = await fetch(proxyUrl + targetUrl);
         if (!response.ok) throw new Error("No se pudo cargar el XML");
 
-        const xmlString = await response.text();
+        const data = await response.json();
+        const xmlString = data.contents; // contenido real del XML
+
         const parser = new XMLParser({
           ignoreAttributes: false,
           attributeNamePrefix: "",
