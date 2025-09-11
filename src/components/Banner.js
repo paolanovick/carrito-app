@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from "react";
 
-const Banner = ({ slides }) => {
+const Banner = ({ products }) => {
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % slides.length);
-    }, 4000); // cambia cada 4 segundos
-    return () => clearInterval(interval);
-  }, [slides.length]);
+    if (!products || products.length === 0) return;
 
-  if (!slides || slides.length === 0) return null;
+    const interval = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % products.length);
+    }, 4000); // cambia cada 4 segundos
+
+    return () => clearInterval(interval);
+  }, [products]);
+
+  if (!products || products.length === 0) return null;
+
+  const currentSlide = products[current];
 
   return (
     <div
@@ -22,23 +27,17 @@ const Banner = ({ slides }) => {
         marginBottom: "30px",
       }}
     >
-      {slides.map((slide, index) => (
-        <img
-          key={index}
-          src={slide.image}
-          alt={slide.title}
-          style={{
-            width: "100%",
-            height: "300px",
-            objectFit: "cover",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            transition: "opacity 0.8s ease-in-out",
-            opacity: index === current ? 1 : 0,
-          }}
-        />
-      ))}
+      <img
+        src={currentSlide.image}
+        alt={currentSlide.title}
+        style={{
+          width: "100%",
+          height: "300px",
+          objectFit: "cover",
+          borderRadius: "5px",
+          transition: "opacity 0.8s ease-in-out",
+        }}
+      />
       <div
         style={{
           position: "absolute",
@@ -51,7 +50,7 @@ const Banner = ({ slides }) => {
           borderRadius: "5px",
         }}
       >
-        {slides[current].title}
+        {currentSlide.title}
       </div>
     </div>
   );
