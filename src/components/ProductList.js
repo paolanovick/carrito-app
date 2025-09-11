@@ -6,29 +6,25 @@ const ProductList = ({ addToCart }) => {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    fetch("/allseasons.xml") // o la URL externa si funciona con CORS
+    fetch("/allseasons.xml")
       .then((res) => res.text())
       .then((xmlString) => {
+        const cleanXmlString = xmlString.replace(/^\uFEFF/, "");
         const parser = new XMLParser({
           ignoreAttributes: false,
           attributeNamePrefix: "",
         });
-        const jsonData = parser.parse(xmlString);
+        const jsonData = parser.parse(cleanXmlString);
 
-        console.log("JSON Parseado:", jsonData); // <--- Para ver la estructura exacta
+        console.log(JSON.stringify(jsonData, null, 2)); // para ver la estructura exacta
 
-        // Verificar paquetes dentro de root o directamente
-        let paquetes;
-        if (jsonData.root?.paquetes?.paquete) {
-          paquetes = jsonData.root.paquetes.paquete;
-        } else if (jsonData.paquetes?.paquete) {
-          paquetes = jsonData.paquetes.paquete;
-        } else {
+        let paquetes =
+          jsonData.root?.paquetes?.paquete || jsonData.paquetes?.paquete;
+        if (!paquetes) {
           console.error("XML no tiene paquetes");
           return;
         }
 
-        // Asegurarse de que siempre sea un array
         if (!Array.isArray(paquetes)) paquetes = [paquetes];
 
         const formattedProducts = paquetes.map((p) => ({
@@ -46,6 +42,7 @@ const ProductList = ({ addToCart }) => {
       })
       .catch((err) => console.error("Error al cargar XML:", err));
   }, []);
+
 
   return (
     <div
