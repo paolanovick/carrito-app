@@ -35,7 +35,7 @@ const Banner = ({ products }) => {
           height: "300px",
           objectFit: "cover",
           borderRadius: "5px",
-          transition: "opacity 0.8s ease-in-out",
+          transition: "opacity 0.8s",
         }}
       />
       <div

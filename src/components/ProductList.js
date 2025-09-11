@@ -6,23 +6,26 @@ const ProductList = ({ addToCart }) => {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    // Reemplazar fetch con '/allseasons.xml' si lo guardaste en public/
-    fetch("https://travel-tool.net/admin/xml/allseasons.xml")
+    fetch("/allseasons.xml") // o la URL externa si funciona con CORS
       .then((res) => res.text())
-      .then((data) => {
+      .then((xmlString) => {
         const parser = new XMLParser({
           ignoreAttributes: false,
           attributeNamePrefix: "",
         });
-        const json = parser.parse(data);
+        const jsonData = parser.parse(xmlString);
 
-        // json.root.paquetes.paquete puede ser un objeto o array
-        let paquetes = json.root.paquetes.paquete;
+        if (!jsonData.root?.paquetes?.paquete) {
+          console.error("XML no tiene paquetes");
+          return;
+        }
+
+        let paquetes = jsonData.root.paquetes.paquete;
         if (!Array.isArray(paquetes)) paquetes = [paquetes];
 
         const formattedProducts = paquetes.map((p) => ({
           id: p.paquete_externo_id,
-          title: p.titulo?.replace(/<[^>]+>/g, ""), // eliminar HTML
+          title: p.titulo?.replace(/<[^>]+>/g, ""),
           description: p.incluye?.replace(/<[^>]+>/g, ""),
           price: parseFloat(p.doble_precio) || 0,
           image:
@@ -37,7 +40,14 @@ const ProductList = ({ addToCart }) => {
   }, []);
 
   return (
-    <div className="product-list">
+    <div
+      className="product-list"
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill,minmax(250px,1fr))",
+        gap: "20px",
+      }}
+    >
       {products.map((product) => (
         <ProductCard key={product.id} product={product} addToCart={addToCart} />
       ))}
