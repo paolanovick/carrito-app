@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Banner from "./components/Banner";
 import ProductList from "./components/ProductList";
-import CheckoutForm from "./components/CheckoutForm";
+
 import Footer from "./components/Footer";
 import "./index.css";
 
