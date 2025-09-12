@@ -27,9 +27,9 @@ const ProductList = ({ addToCart }) => {
         // Verificamos si data.root.paquetes.paquete es un array o un objeto único
         const paquetes = data?.root?.paquetes?.paquete;
         const paquetesArray = Array.isArray(paquetes)
-          ? paquetes
-          : paquetes
-          ? [paquetes]
+          ? data.paquetes
+          : data.paquetes
+          ? [data.paquetes]
           : [];
 
         const formatted = paquetesArray.map((p, index) => ({
