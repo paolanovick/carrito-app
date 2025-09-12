@@ -24,20 +24,25 @@ const ProductList = ({ addToCart }) => {
         const data = await response.json();
         console.log(data);
 
-        // Verificamos si data.root.paquetes.paquete es un array o un objeto único
+        // Obtenemos paquetes desde data
         const paquetes = data?.root?.paquetes?.paquete;
+
+        // Si viene un objeto único lo convertimos a array
         const paquetesArray = Array.isArray(paquetes)
-          ? data.paquetes
-          : data.paquetes
-          ? [data.paquetes]
+          ? paquetes
+          : paquetes
+          ? [paquetes]
           : [];
 
-        const formatted = paquetesArray.map((p, index) => ({
-          id: p.paquete_externo_id || index,
+        // Formateamos cada paquete para ProductCard
+        const formatted = paquetesArray.map((p) => ({
+          id: p.paquete_externo_id || Math.random().toString(36).substr(2, 9), // id único
           titulo: p.titulo ? p.titulo.replace(/<br>/g, " ") : "Sin título",
           url: p.url?.trim() || "#",
           imagen_principal:
-            p.imagen_principal || "https://via.placeholder.com/200",
+            p.imagen_principal && p.imagen_principal !== ""
+              ? p.imagen_principal
+              : "https://via.placeholder.com/200",
           cant_noches: p.cant_noches || 0,
           doble_precio: p.salidas?.salida?.[0]?.doble_precio || 0,
           destinoCiudad: p.destinos?.destino?.ciudad || "Desconocido",
