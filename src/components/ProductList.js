@@ -22,30 +22,27 @@ const ProductList = ({ addToCart }) => {
         }
 
         const data = await response.json();
-        console.log("Datos recibidos del webhook:", data);
+        console.log(data);
 
         // Verificamos si data.root.paquetes.paquete es un array o un objeto único
         const paquetes = data?.root?.paquetes?.paquete;
         const paquetesArray = Array.isArray(paquetes)
-          ? paquetes
-          : paquetes
-          ? [paquetes]
+          ? data.paquetes
+          : data.paquetes
+          ? [data.paquetes]
           : [];
 
         const formatted = paquetesArray.map((p, index) => ({
           id: p.paquete_externo_id || index,
           titulo: p.titulo ? p.titulo.replace(/<br>/g, " ") : "Sin título",
           url: p.url?.trim() || "#",
-          // Placeholder si no hay imagen o URL inválida
           imagen_principal:
-            p.imagen_principal?.trim() || "https://via.placeholder.com/200",
+            p.imagen_principal || "https://via.placeholder.com/200",
           cant_noches: p.cant_noches || 0,
           doble_precio: p.salidas?.salida?.[0]?.doble_precio || 0,
           destinoCiudad: p.destinos?.destino?.ciudad || "Desconocido",
           destinoPais: p.destinos?.destino?.pais || "Desconocido",
         }));
-
-        console.log("Productos formateados:", formatted);
 
         setProducts(formatted);
       } catch (err) {
