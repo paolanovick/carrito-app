@@ -241,6 +241,7 @@ main {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 20px;
   padding: 20px 0;
+    justify-items: center; 
 }
 
 .product-card {
@@ -251,6 +252,9 @@ main {
   text-align: center;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   transition: transform 0.2s;
+  width: 100%;
+  max-width: 300px;
+
 }
 
 .product-card:hover {
