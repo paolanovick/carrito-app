@@ -20,11 +20,7 @@ useEffect(() => {
      console.log(data);
 
 
-
-      
-
-      // Extraer array de paquetes
-      const paquetesArray = data?.root?.paquetes?.paquete || [];
+const paquetesArray = data || [];
 
 
 
