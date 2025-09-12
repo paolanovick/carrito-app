@@ -5,8 +5,13 @@ const Navbar = ({ cartCount }) => {
     <nav>
       <div className="logo-container">
         <div className="logo-icon">
-          <span>T</span>
+          <img
+            src="/logo.png"
+            alt="TripNow Logo"
+          
+          />
         </div>
+
         <h2>
           Trip<span className="logo-accent">Now!</span>
         </h2>
