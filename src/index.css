@@ -374,7 +374,7 @@ header h1 {
 @media (max-width: 480px) {
   .product-list {
     grid-template-columns: 1fr;
-    gap: 15px;
+    gap: 20px;
   }
   
   .product-card {
@@ -383,7 +383,7 @@ header h1 {
   }
   
   .main-content {
-    padding: 15px 10px;
+    padding: 20px 15px;
   }
 }
 
