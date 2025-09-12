@@ -24,13 +24,11 @@ const ProductList = ({ addToCart }) => {
         const data = await response.json();
         console.log(data);
 
-        // Usamos exactamente la referencia que funcionaba antes
-        const paquetes = data?.root?.paquetes?.paquete;
-
-        const paquetesArray = Array.isArray(paquetes)
-          ? paquetes
-          : paquetes
-          ? [paquetes]
+        // --- ESTA PARTE ES LA QUE FUNCIONABA ---
+        const paquetesArray = data?.root?.paquetes?.paquete
+          ? Array.isArray(data.root.paquetes.paquete)
+            ? data.root.paquetes.paquete
+            : [data.root.paquetes.paquete]
           : [];
 
         const formatted = paquetesArray.map((p, index) => ({
@@ -40,7 +38,7 @@ const ProductList = ({ addToCart }) => {
           imagen_principal:
             p.imagen_principal && p.imagen_principal !== ""
               ? p.imagen_principal
-              : "https://via.placeholder.com/200", // imagen placeholder si no hay
+              : "https://via.placeholder.com/200",
           cant_noches: p.cant_noches || 0,
           doble_precio: p.salidas?.salida?.[0]?.doble_precio || 0,
           destinoCiudad: p.destinos?.destino?.ciudad || "Desconocido",
