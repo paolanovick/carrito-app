@@ -24,21 +24,15 @@ const ProductList = ({ addToCart }) => {
         const data = await response.json();
         console.log(data);
 
-        // --- ESTA PARTE ES LA QUE FUNCIONABA ---
-        const paquetesArray = data?.root?.paquetes?.paquete
-          ? Array.isArray(data.root.paquetes.paquete)
-            ? data.root.paquetes.paquete
-            : [data.root.paquetes.paquete]
-          : [];
+        // --- Esto es lo que funcionaba antes ---
+        const paquetesArray = data?.root?.paquetes?.paquete || [];
 
         const formatted = paquetesArray.map((p, index) => ({
           id: p.paquete_externo_id || index,
           titulo: p.titulo ? p.titulo.replace(/<br>/g, " ") : "Sin título",
           url: p.url?.trim() || "#",
           imagen_principal:
-            p.imagen_principal && p.imagen_principal !== ""
-              ? p.imagen_principal
-              : "https://via.placeholder.com/200",
+            p.imagen_principal || "https://via.placeholder.com/200",
           cant_noches: p.cant_noches || 0,
           doble_precio: p.salidas?.salida?.[0]?.doble_precio || 0,
           destinoCiudad: p.destinos?.destino?.ciudad || "Desconocido",
