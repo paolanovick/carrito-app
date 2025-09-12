@@ -14,7 +14,8 @@ useEffect(() => {
       const data = await response.json();
 
       // Extraemos el array de paquetes
-      const paquetesArray = data?.root?.paquetes?.paquete || [];
+      const paquetesArray = data.paquetes;
+
 
       const formatted = paquetesArray.map((p, index) => ({
         id: p.paquete_externo_id || index,
