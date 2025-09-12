@@ -8,9 +8,11 @@ const ProductList = ({ addToCart }) => {
 useEffect(() => {
   const fetchProducts = async () => {
     try {
-     const response = await fetch(
-       "https://f034baa0b344.ngrok-free.app/webhook/api"
-     );
+     const response = await fetch("https://f034baa0b344.ngrok-free.app/webhook/api", {
+  headers: {
+    "ngrok-skip-browser-warning": "1",
+  },
+});
 
       const data = await response.json();
 
