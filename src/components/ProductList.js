@@ -8,13 +8,15 @@ const ProductList = ({ addToCart }) => {
 useEffect(() => {
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://167.172.31.249:5678/webhook/api");
-      if (!response.ok) throw new Error("Error al traer productos");
+     const response = await fetch(
+       "https://f034baa0b344.ngrok-free.app/webhook/api"
+     );
 
       const data = await response.json();
 
-      // Extraemos el array de paquetes
-      const paquetesArray = data.paquetes;
+      // Extraer array de paquetes
+      const paquetesArray = data?.root?.paquetes?.paquete || [];
+
 
 
       const formatted = paquetesArray.map((p, index) => ({
