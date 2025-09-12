@@ -24,25 +24,23 @@ const ProductList = ({ addToCart }) => {
         const data = await response.json();
         console.log(data);
 
-        // Obtenemos paquetes desde data
+        // Usamos exactamente la referencia que funcionaba antes
         const paquetes = data?.root?.paquetes?.paquete;
 
-        // Si viene un objeto único lo convertimos a array
         const paquetesArray = Array.isArray(paquetes)
           ? paquetes
           : paquetes
           ? [paquetes]
           : [];
 
-        // Formateamos cada paquete para ProductCard
-        const formatted = paquetesArray.map((p) => ({
-          id: p.paquete_externo_id || Math.random().toString(36).substr(2, 9), // id único
+        const formatted = paquetesArray.map((p, index) => ({
+          id: p.paquete_externo_id || index,
           titulo: p.titulo ? p.titulo.replace(/<br>/g, " ") : "Sin título",
           url: p.url?.trim() || "#",
           imagen_principal:
             p.imagen_principal && p.imagen_principal !== ""
               ? p.imagen_principal
-              : "https://via.placeholder.com/200",
+              : "https://via.placeholder.com/200", // imagen placeholder si no hay
           cant_noches: p.cant_noches || 0,
           doble_precio: p.salidas?.salida?.[0]?.doble_precio || 0,
           destinoCiudad: p.destinos?.destino?.ciudad || "Desconocido",
