@@ -6,13 +6,7 @@ const ProductCard = ({ product, addToCart }) => {
       <img
         src={product.imagen_principal || "https://via.placeholder.com/200"}
         alt={product.titulo}
-        style={{
-          width: "100%",
-          height: "150px",
-          objectFit: "cover",
-          borderRadius: "4px",
-        }}
-      />
+            />
       <h3>{product.titulo}</h3>
       <p>
         {product.destinoCiudad}, {product.destinoPais} - {product.cant_noches}{" "}

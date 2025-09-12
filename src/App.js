@@ -1,64 +1,69 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Navbar from "./components/Navbar";
+import Banner from "./components/Banner";
 import ProductList from "./components/ProductList";
 import Cart from "./components/Cart";
 import CheckoutForm from "./components/CheckoutForm";
+import Footer from "./components/Footer";
 import "./index.css";
 
 function App() {
   const [cart, setCart] = useState([]);
+  const [products, setProducts] = useState([]);
 
-  // Agregar producto al carrito
-  const addToCart = (product) => {
-    setCart((prev) => [...prev, product]);
-  };
+  // Cargar productos desde la API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(
+          "https://ff910aaa68e6.ngrok-free.app/webhook/api",
+          { headers: { "ngrok-skip-browser-warning": "true" } }
+        );
+        const data = await response.json();
+        const paquetes = data?.root?.paquetes?.paquete;
+        const paquetesArray = Array.isArray(paquetes)
+          ? paquetes
+          : paquetes
+          ? [paquetes]
+          : [];
 
-  // Quitar producto del carrito
-  const removeFromCart = (productId) => {
+        const formatted = paquetesArray.map((p, index) => ({
+          id: p.paquete_externo_id || index,
+          titulo: p.titulo ? p.titulo.replace(/<br>/g, " ") : "Sin título",
+          url: p.url?.trim() || "#",
+          imagen_principal:
+            p.imagen_principal || "https://via.placeholder.com/200",
+          cant_noches: p.cant_noches || 0,
+          doble_precio: p.salidas?.salida?.[0]?.doble_precio || 0,
+          destinoCiudad: p.destinos?.destino?.ciudad || "Desconocido",
+          destinoPais: p.destinos?.destino?.pais || "Desconocido",
+        }));
+
+        setProducts(formatted);
+      } catch (err) {
+        console.error("Error cargando productos:", err);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  const addToCart = (product) => setCart((prev) => [...prev, product]);
+  const removeFromCart = (productId) =>
     setCart((prev) => prev.filter((item) => item.id !== productId));
-  };
 
   return (
     <div>
-      {/* Navbar */}
-      <nav>
-        <h2>Travel Store</h2>
-        <ul>
-          <li>Inicio</li>
-          <li>Productos</li>
-          <li>Contacto</li>
-          <li>Carrito ({cart.length})</li>
-        </ul>
-      </nav>
-
-      {/* Header */}
-      <header>
-        <h1>Bienvenido a Travel Store</h1>
-        <p>Encuentra los mejores paquetes de viajes a todo el mundo</p>
-      </header>
-
-      {/* Main content */}
-      <main
-        style={{
-          display: "flex",
-          gap: "20px",
-          flexWrap: "wrap",
-          padding: "20px",
-        }}
-      >
-        <div style={{ flex: 3 }}>
-          <ProductList addToCart={addToCart} />
-        </div>
-
-        <div style={{ flex: 1, minWidth: "300px" }}>
+      <Navbar cartCount={cart.length} />
+      <Banner products={products} />
+      <main className="main-content">
+        <ProductList products={products} addToCart={addToCart} />
+        <div className="cart-section">
           <Cart cart={cart} removeFromCart={removeFromCart} />
           {cart.length > 0 && <CheckoutForm cart={cart} />}
         </div>
       </main>
-
-      {/* Footer */}
-      <footer>
-        <p>© 2025 Travel Store - Todos los derechos reservados</p>
-      </footer>
+      <Footer />
     </div>
   );
 }
