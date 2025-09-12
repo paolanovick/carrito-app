@@ -8,21 +8,24 @@ const ProductList = ({ addToCart }) => {
 useEffect(() => {
   const fetchProducts = async () => {
     try {
-     const response = await fetch(
-       "https://e8f03bb551f6.ngrok-free.app/webhook/api",
-       {
-         headers: {
-           "ngrok-skip-browser-warning": "1",
-         },
-       }
-     );
-     const data = await response.json();
-     console.log(data);
+      const response = await fetch(
+        "https://e8f03bb551f6.ngrok-free.app/webhook/api",
+        {
+          headers: {
+            "ngrok-skip-browser-warning": "1",
+          },
+        }
+      );
+      const data = await response.json();
+      console.log(data);
 
-
-const paquetesArray = data || [];
-
-
+      // Verificamos si data.root.paquetes.paquete es un array o un objeto único
+      const paquetes = data?.root?.paquetes?.paquete;
+      const paquetesArray = Array.isArray(paquetes)
+        ? paquetes
+        : paquetes
+        ? [paquetes]
+        : [];
 
       const formatted = paquetesArray.map((p, index) => ({
         id: p.paquete_externo_id || index,
