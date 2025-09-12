@@ -5,35 +5,39 @@ const ProductList = ({ addToCart }) => {
   const [products, setProducts] = useState([]);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch("http://167.172.31.249:5678/webhook/api");
-        if (!response.ok) throw new Error("Error al traer productos");
+useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch("http://167.172.31.249:5678/webhook/api");
+      if (!response.ok) throw new Error("Error al traer productos");
 
-        const data = await response.json();
+      const data = await response.json();
 
-        const formatted = data.map((p, index) => ({
-          id: p.paquete_externo_id || index,
-          titulo: p.titulo ? p.titulo.replace(/<br>/g, " ") : "Sin título",
-          url: p.url?.trim() || "#",
-          imagen_principal:
-            p.imagen_principal || "https://via.placeholder.com/200",
-          cant_noches: p.cant_noches || 0,
-          doble_precio: p.salida?.[0]?.doble_precio || 0,
-          destinoCiudad: p.destinos?.destino?.ciudad || "Desconocido",
-          destinoPais: p.destinos?.destino?.pais || "Desconocido",
-        }));
+      // Extraemos el array de paquetes
+      const paquetesArray = data?.root?.paquetes?.paquete || [];
 
-        setProducts(formatted);
-      } catch (err) {
-        console.error(err);
-        setError("No se pudieron cargar los productos");
-      }
-    };
+      const formatted = paquetesArray.map((p, index) => ({
+        id: p.paquete_externo_id || index,
+        titulo: p.titulo ? p.titulo.replace(/<br>/g, " ") : "Sin título",
+        url: p.url?.trim() || "#",
+        imagen_principal:
+          p.imagen_principal || "https://via.placeholder.com/200",
+        cant_noches: p.cant_noches || 0,
+        doble_precio: p.salidas?.salida?.[0]?.doble_precio || 0,
+        destinoCiudad: p.destinos?.destino?.ciudad || "Desconocido",
+        destinoPais: p.destinos?.destino?.pais || "Desconocido",
+      }));
 
-    fetchProducts();
-  }, []);
+      setProducts(formatted);
+    } catch (err) {
+      console.error(err);
+      setError("No se pudieron cargar los productos");
+    }
+  };
+
+  fetchProducts();
+}, []);
+
 
   if (error) return <p>{error}</p>;
   if (products.length === 0) return <p>No hay productos disponibles</p>;
