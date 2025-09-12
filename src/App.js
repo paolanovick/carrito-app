@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Banner from "./components/Banner";
 import ProductList from "./components/ProductList";
-import Cart from "./components/Cart";
-import CheckoutForm from "./components/CheckoutForm";
+
 import Footer from "./components/Footer";
 import "./index.css";
 
@@ -54,14 +53,11 @@ function App() {
 
   return (
     <div>
-      <Navbar cartCount={cart.length} />
+      <Navbar cartItems={cart} removeFromCart={removeFromCart} />
       <Banner products={products} />
-      <main className="main-content">
+      <main>
         <ProductList products={products} addToCart={addToCart} />
-        <div className="cart-section">
-          <Cart cart={cart} removeFromCart={removeFromCart} />
-          {cart.length > 0 && <CheckoutForm cart={cart} />}
-        </div>
+        {/* Quitamos la sección fija del carrito */}
       </main>
       <Footer />
     </div>
