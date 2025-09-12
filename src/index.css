@@ -184,32 +184,24 @@ header h1 {
   margin-bottom: 10px;
 }
 
-/* Main layout */
+/* Main layout simplificado */
 main {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  padding: 20px 40px;
-}
-.main-content {
   display: grid;
-  grid-template-columns: 3fr 1fr; /* 3/4 productos, 1/4 carrito */
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 30px; /* espacio entre tarjetas */
   padding: 20px 40px;
-  align-items: start;
+  justify-items: center; /* centra las tarjetas */
 }
 
-
-/* Responsive */
+/* Responsive tweaks */
 @media (max-width: 900px) {
   main {
-    flex-direction: column;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
     padding: 20px;
   }
-  .product-list {
-    justify-content: center;
-  }
 }
+
 
 /* Banner */
 .banner {
@@ -327,39 +319,7 @@ main {
   }
 }
 
-/* Cart */
-.cart {
-  background-color: white;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  padding: 15px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
 
-.cart-item {
-  border-bottom: 1px solid #eee;
-  padding: 10px 0;
-}
-
-.cart-item button {
-  margin-right: 5px;
-  padding: 5px 8px;
-  background-color: #e53935;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.cart-item button:hover {
-  background-color: #ab000d;
-}
-.cart-section {
-  position: webkit-sticky; /* Safari */
-  top: 20px;
-  align-self: start;
-  min-width: 280px;
-}
 
 /* CheckoutForm */
 form {
