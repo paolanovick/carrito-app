@@ -196,10 +196,12 @@ header h1 {
 /* ------------------- Main Content ------------------- */
 .main-content {
   display: grid;
-  grid-template-columns: 3fr 1fr; /* Productos + carrito fijo si fuera necesario */
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 30px;
   padding: 20px 40px;
-  align-items: start;
+  justify-items: center; /* centra las tarjetas en cada celda */
+  max-width: 1200px; /* ancho máximo de la sección */
+  margin: 0 auto;  
 }
 
 /* Product List */
