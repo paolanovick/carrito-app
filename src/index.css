@@ -1,13 +1,11 @@
-/* General */
+/* ------------------- General ------------------- */
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f9f9f9;
 }
 
-
-
-/* Logo container */
+/* ------------------- Logo ------------------- */
 .logo-container {
   display: flex;
   align-items: center;
@@ -26,7 +24,6 @@ body {
   100% { box-shadow: 0 0 5px rgba(52, 152, 219, 0.5); }
 }
 
-/* Logo icon */
 .logo-icon {
   width: 40px;
   height: 40px;
@@ -38,12 +35,6 @@ body {
   box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
-.logo-icon span {
-  color: white;
-  font-size: 1.2rem;
-
-  font-weight: bold;
-}
 .logo-icon img {
   width: 100%;
   height: 100%;
@@ -51,9 +42,13 @@ body {
   border-radius: 8px;
 }
 
-/* Reemplaza los estilos del nav en tu index.css con estos: */
+.logo-icon span {
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
 
-/* Navbar TripNow */
+/* ------------------- Navbar ------------------- */
 nav {
   background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
   padding: 1rem 2rem;
@@ -64,7 +59,7 @@ nav {
   position: relative;
   border-bottom: 2px solid #3498db;
 }
-/* Logo text */
+
 nav h2 {
   font-size: 1.8rem;
   font-weight: bold;
@@ -78,7 +73,6 @@ nav h2 {
   font-weight: normal;
 }
 
-/* Navigation links */
 nav ul {
   display: flex;
   gap: 2rem;
@@ -96,46 +90,39 @@ nav li {
   font-weight: 500;
   font-size: 1rem;
   position: relative;
-  text-decoration: none;
   border: 1px solid transparent;
 }
 
-/* Hover effects for regular links */
 nav li:not(.cart-item):hover {
   background: rgba(52, 152, 219, 0.2);
   border-color: #3498db;
   transform: translateY(-2px);
   color: #3498db;
 }
-/* Responsive */
+
+/* Responsive navbar */
 @media (max-width: 768px) {
   nav {
-    padding: 1rem;
     flex-direction: column;
+    padding: 1rem;
     gap: 1rem;
   }
-  
   nav ul {
     gap: 1rem;
   }
-  
   nav li {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
   }
-  
   nav h2 {
     font-size: 1.5rem;
   }
 }
 
-
-
-
-/* Dropdown carrito */
+/* ------------------- Cart Dropdown ------------------- */
 .cart-dropdown {
   position: absolute;
-  top: 60px; /* ajusta según altura del nav */
+  top: 60px;
   right: 2rem;
   width: 300px;
   max-height: 400px;
@@ -169,10 +156,32 @@ nav li:not(.cart-item):hover {
   background-color: #ab000d;
 }
 
-/* Opcional: cerrar dropdown al hacer clic fuera (requiere JS extra o librería) */
+/* Cart badge */
+.cart-badge {
+  background: linear-gradient(135deg, #e67e22, #f39c12);
+  border-radius: 50%;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  min-width: 24px;
+  text-align: center;
+  display: inline-block;
+}
 
+.cart-badge.has-items {
+  animation: pulse 2s infinite;
+}
 
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
 
+/* ------------------- Header ------------------- */
 header {
   text-align: center;
   padding: 40px 20px;
@@ -184,66 +193,25 @@ header h1 {
   margin-bottom: 10px;
 }
 
-/* Main layout simplificado */
-main {
+/* ------------------- Main Content ------------------- */
+.main-content {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 30px; /* espacio entre tarjetas */
+  grid-template-columns: 3fr 1fr; /* Productos + carrito fijo si fuera necesario */
+  gap: 20px;
   padding: 20px 40px;
-  justify-items: center; /* centra las tarjetas */
+  align-items: start;
 }
 
-/* Responsive tweaks */
-@media (max-width: 900px) {
-  main {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px;
-    padding: 20px;
-  }
-}
-
-
-/* Banner */
-.banner {
-  position: relative;
-  width: 100%;
-  height: 300px;
-  overflow: hidden;
-  margin-bottom: 30px;
-  border-radius: 5px;
-}
-
-.banner img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: opacity 0.8s;
-}
-
-.banner .caption {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: white;
-  background: rgba(0,0,0,0.5);
-  padding: 10px 20px;
-  border-radius: 5px;
-  font-weight: bold;
-}
-
-/* ProductList & Cards */
-/* ProductList & Cards */
+/* Product List */
 .product-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 30px;          /* espacio entre tarjetas en escritorio */
-  padding: 20px 0;
-  justify-items: center; 
+  gap: 30px;
+  justify-items: center;
+  width: 100%;
 }
 
 .product-card {
-  margin: 0;           /* eliminamos margen externo para que el gap del grid controle el espacio */
   background-color: white;
   border-radius: 8px;
   border: 1px solid #ddd;
@@ -255,7 +223,6 @@ main {
   max-width: 300px;
 }
 
-/* Hover efecto */
 .product-card:hover {
   transform: translateY(-5px);
 }
@@ -291,37 +258,22 @@ main {
 
 /* Responsive tweaks */
 @media (max-width: 900px) {
+  .main-content {
+    grid-template-columns: 1fr; /* una sola columna en tablet/móvil */
+  }
   .product-list {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 25px;        /* espacio más consistente en tablet */
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
   }
 }
 
 @media (max-width: 768px) {
-  .product-list {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px;        /* espacio en móviles más pequeño pero aún aireado */
-  }
-
   .product-card {
     padding: 10px;
   }
 }
 
-@media (max-width: 900px) {
-  .main-content {
-    grid-template-columns: 1fr; /* una sola columna */
-  }
-  .cart-section {
-    position: relative;
-    top: auto;
-    min-width: 100%;
-  }
-}
-
-
-
-/* CheckoutForm */
+/* ------------------- Checkout Form ------------------- */
 form {
   margin-top: 20px;
   background-color: #fff;
@@ -352,7 +304,7 @@ form button:hover {
   background-color: #115293;
 }
 
-/* Footer */
+/* ------------------- Footer ------------------- */
 footer {
   text-align: center;
   padding: 20px;
@@ -360,5 +312,3 @@ footer {
   color: white;
   margin-top: 40px;
 }
-
-

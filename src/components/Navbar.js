@@ -1,6 +1,7 @@
 import React, { useState } from "react";
+import Cart from "./Cart";
 
-const Navbar = ({ cartItems, removeFromCart }) => {
+const Navbar = ({ cart, removeFromCart }) => {
   const [showCart, setShowCart] = useState(false);
 
   return (
@@ -18,25 +19,14 @@ const Navbar = ({ cartItems, removeFromCart }) => {
         <li>Inicio</li>
         <li>Paquetes</li>
         <li>Contacto</li>
-        <li className="cart-item" onClick={() => setShowCart(!showCart)}>
+        <li className="cart-item" onClick={() => setShowCart((prev) => !prev)}>
           Carrito
-          <span
-            className={`cart-badge ${cartItems.length > 0 ? "has-items" : ""}`}
-          >
-            {cartItems.length || 0}
+          <span className={`cart-badge ${cart.length > 0 ? "has-items" : ""}`}>
+            {cart.length || 0}
           </span>
           {showCart && (
             <div className="cart-dropdown">
-              {cartItems.length === 0 ? (
-                <p>El carrito está vacío</p>
-              ) : (
-                cartItems.map((item) => (
-                  <div key={item.id} className="cart-dropdown-item">
-                    <span>{item.titulo}</span>
-                    <button onClick={() => removeFromCart(item.id)}>X</button>
-                  </div>
-                ))
-              )}
+              <Cart cart={cart} removeFromCart={removeFromCart} />
             </div>
           )}
         </li>
