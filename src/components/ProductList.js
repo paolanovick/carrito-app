@@ -24,8 +24,13 @@ const ProductList = ({ addToCart }) => {
         const data = await response.json();
         console.log(data);
 
-        // --- Esto es lo que funcionaba antes ---
-        const paquetesArray = data?.root?.paquetes?.paquete || [];
+        // Verificamos si data.root.paquetes.paquete es un array o un objeto único
+        const paquetes = data?.root?.paquetes?.paquete;
+        const paquetesArray = Array.isArray(paquetes)
+          ? data.paquetes
+          : data.paquetes
+          ? [data.paquetes]
+          : [];
 
         const formatted = paquetesArray.map((p, index) => ({
           id: p.paquete_externo_id || index,
