@@ -8,13 +8,20 @@ const ProductList = ({ addToCart }) => {
 useEffect(() => {
   const fetchProducts = async () => {
     try {
-     const response = await fetch("https://c1243927b655.ngrok-free.app", {
-       headers: {
-         "ngrok-skip-browser-warning": "1",
-       },
-     });
+     const response = await fetch(
+       "https://c1243927b655.ngrok-free.app/webhook/api",
+       {
+         headers: {
+           "ngrok-skip-browser-warning": "1",
+         },
+       }
+     );
+     const data = await response.json();
+     console.log(data);
 
-      const data = await response.json();
+
+
+      
 
       // Extraer array de paquetes
       const paquetesArray = data?.root?.paquetes?.paquete || [];
