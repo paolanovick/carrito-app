@@ -12,37 +12,26 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
- useEffect(() => {
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("https://2cd882428218.ngrok-free.app/api", {
-        method: "GET",
-        headers: {
-          "ngrok-skip-browser-warning": "true",
-          "Content-Type": "application/json"
-        }
-      });
-      const data = await res.json();
-      console.log(data);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch("https://2cd882428218.ngrok-free.app/api", {
+          method: "GET",
+          headers: {
+            "ngrok-skip-browser-warning": "true",
+            "Content-Type": "application/json",
+          },
+        });
 
-  fetchProducts();
-}, []);
+        const data = await res.json();
 
-
-
-        // Verificar la estructura de datos
+        // Procesar los paquetes DENTRO de fetchProducts
         const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
         const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
         const processedProducts = formatted
-          .filter((p) => p && p.titulo) // Filtrar paquetes válidos
+          .filter((p) => p && p.titulo)
           .map((p, index) => ({
             id: p.paquete_externo_id || `package-${index}`,
             titulo:
@@ -78,7 +67,6 @@ function App() {
 
         setProducts(processedProducts);
         setError(null);
-        console.log("Productos procesados:", processedProducts);
       } catch (err) {
         console.error("Error cargando productos:", err);
         setError(`Error al cargar productos: ${err.message}`);
@@ -120,7 +108,6 @@ function App() {
       <Navbar cart={cart} removeFromCart={removeFromCart} />
       <Banner products={products} />
 
-      {/* Carrusel dinámico usando las imágenes de los productos cargados */}
       <Carrusel
         images={products
           .map((p) => p.imagen_principal)
