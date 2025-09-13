@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 
 const Modal = ({ product, onClose }) => {
+  // Hooks siempre al principio del componente
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   if (!product || Object.keys(product).length === 0) return null;
 
   const images = product.galeria_imagenes || [];
-  const [currentIndex, setCurrentIndex] = useState(0);
 
   const nextImage = () => {
     setCurrentIndex((prev) => (prev + 1) % images.length);
