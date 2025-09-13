@@ -12,27 +12,30 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(
-          "https://2cd882428218.ngrok-free.app/webhook/api",
-          {
-            method: "GET",
-            headers: {
-              "ngrok-skip-browser-warning": "true",
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+ useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("https://2cd882428218.ngrok-free.app/api", {
+        method: "GET",
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+          "Content-Type": "application/json"
         }
+      });
+      const data = await res.json();
+      console.log(data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        const data = await res.json();
-        console.log("Datos recibidos:", data); // Para debug
+  fetchProducts();
+}, []);
+
+
 
         // Verificar la estructura de datos
         const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
