@@ -4,7 +4,7 @@ import Banner from "./components/Banner";
 import ProductList from "./components/ProductList";
 import Footer from "./components/Footer";
 import Carrusel from "./components/Carrusel";
-import "./index.css";
+import "./index.css"; // debe estar en /src
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -23,10 +23,9 @@ function App() {
             "Content-Type": "application/json",
           },
         });
-
         const data = await res.json();
+        console.log("Datos crudos:", data);
 
-        // Procesar los paquetes DENTRO de fetchProducts
         const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
         const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
@@ -78,46 +77,37 @@ function App() {
     fetchProducts();
   }, []);
 
-  const addToCart = (product) => {
-    setCart((prev) => [...prev, product]);
-  };
-
-  const removeFromCart = (id) => {
+  const addToCart = (product) => setCart((prev) => [...prev, product]);
+  const removeFromCart = (id) =>
     setCart((prev) => prev.filter((item) => item.id !== id));
-  };
 
-  if (loading) {
+  if (loading)
     return (
       <div className="loading-container">
         <p>Cargando productos...</p>
       </div>
     );
-  }
 
-  if (error) {
+  if (error)
     return (
       <div className="error-container">
         <p>{error}</p>
         <button onClick={() => window.location.reload()}>Reintentar</button>
       </div>
     );
-  }
 
   return (
     <>
       <Navbar cart={cart} removeFromCart={removeFromCart} />
       <Banner products={products} />
-
       <Carrusel
         images={products
           .map((p) => p.imagen_principal)
           .filter((img) => img && img !== "https://via.placeholder.com/200")}
       />
-
       <main className="main-content">
         <ProductList products={products} addToCart={addToCart} />
       </main>
-
       <Footer />
     </>
   );
