@@ -295,7 +295,8 @@ header h1 {
   letter-spacing: 0.5px;
   font-size: 0.8rem; /* más pequeño */
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  display: inline-block; /* evita que ocupe todo el ancho */
+  display: inline-block;
+  margin: 5px; /* separación entre botones */ /* evita que ocupe todo el ancho */
 }
 
 .product-card button:hover {
