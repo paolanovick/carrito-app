@@ -10,79 +10,75 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-   useEffect(() => {
-     const fetchProducts = async () => {
-       try {
-         setLoading(true);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(
+          "https://845a958337db.ngrok-free.app/webhook/api",
+          {
+            method: "GET",
+            headers: {
+              "ngrok-skip-browser-warning": "true",
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
-         const res = await fetch(
-           "https://845a958337db.ngrok-free.app/webhook/api",
-           {
-             method: "GET",
-             headers: {
-               "ngrok-skip-browser-warning": "true",
-               "Content-Type": "application/json",
-             },
-           }
-         );
+        const data = await res.json();
+        console.log("Datos recibidos:", data);
 
-         // Forzar que el status code sea un número
-         const status = Number(res.status);
-         if (status !== 200) throw new Error(`HTTP error! status: ${status}`);
-         const data = await res.json();
-         console.log("Datos recibidos:", data);
+        const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
+        const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
-         const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
-         const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
+        const processedProducts = formatted
+          .filter((p) => p && p.titulo)
+          .map((p, index) => ({
+            id: p.paquete_externo_id || `package-${index}`,
+            titulo:
+              p.titulo
+                ?.replace(/<br>/g, " ")
+                ?.replace(/<[^>]*>/g, "")
+                ?.trim() || "Sin título",
+            imagen_principal:
+              p.imagen_principal || "https://via.placeholder.com/200",
+            url: p.url?.trim() || "#",
+            cant_noches: parseInt(p.cant_noches) || 0,
+            doble_precio: parseFloat(
+              p.doble_precio ||
+                p.salidas?.salida?.[0]?.doble_precio ||
+                p.precio ||
+                0
+            ),
+            destinoCiudad:
+              p.destinos?.destino?.ciudad ||
+              (Array.isArray(p.destinos?.destino)
+                ? p.destinos.destino[0]?.ciudad
+                : null) ||
+              p.ciudad ||
+              "Desconocido",
+            destinoPais:
+              p.destinos?.destino?.pais ||
+              (Array.isArray(p.destinos?.destino)
+                ? p.destinos.destino[0]?.pais
+                : null) ||
+              p.pais ||
+              "Desconocido",
+          }));
 
-         const processedProducts = formatted
-           .filter((p) => p && p.titulo)
-           .map((p, index) => ({
-             id: p.paquete_externo_id || `package-${index}`,
-             titulo:
-               p.titulo
-                 ?.replace(/<br>/g, " ")
-                 ?.replace(/<[^>]*>/g, "")
-                 ?.trim() || "Sin título",
-             imagen_principal:
-               p.imagen_principal || "https://via.placeholder.com/200",
-             url: p.url?.trim() || "#",
-             cant_noches: parseInt(p.cant_noches) || 0,
-             doble_precio: parseFloat(
-               p.doble_precio ||
-                 p.salidas?.salida?.[0]?.doble_precio ||
-                 p.precio ||
-                 0
-             ),
-             destinoCiudad:
-               p.destinos?.destino?.ciudad ||
-               (Array.isArray(p.destinos?.destino)
-                 ? p.destinos.destino[0]?.ciudad
-                 : null) ||
-               p.ciudad ||
-               "Desconocido",
-             destinoPais:
-               p.destinos?.destino?.pais ||
-               (Array.isArray(p.destinos?.destino)
-                 ? p.destinos.destino[0]?.pais
-                 : null) ||
-               p.pais ||
-               "Desconocido",
-           }));
+        console.log("Productos procesados:", processedProducts);
+        setProducts(processedProducts);
+        setError(null);
+      } catch (err) {
+        console.error("Error cargando productos:", err);
+        setError(`Error al cargar productos: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-         console.log("Productos procesados:", processedProducts);
-         setProducts(processedProducts);
-         setError(null);
-       } catch (err) {
-         console.error("Error cargando productos:", err);
-         setError(`Error al cargar productos: ${err.message}`);
-       } finally {
-         setLoading(false);
-       }
-     };
-
-     fetchProducts();
-   }, []);
+    fetchProducts();
+  }, []);
 
   const addToCart = (product) => setCart((prev) => [...prev, product]);
   const removeFromCart = (id) =>
