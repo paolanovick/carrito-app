@@ -60,7 +60,9 @@ function App() {
 
       {/* Carrusel dinámico usando las imágenes de los productos ya cargados */}
       <Carrusel
-        images={products.map((p) => p.imagen_principal).filter((img) => img)}
+        images={products
+          .map((p) => p.imagen_principal)
+          .filter((img) => img && img !== "https://via.placeholder.com/200")}
       />
     </>
   );
