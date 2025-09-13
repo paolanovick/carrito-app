@@ -82,7 +82,7 @@ function App() {
     const fetchImages = async () => {
       try {
         const res = await fetch(
-          "https://845a958337db.ngrok-free.app/webhook/api/carrusel",
+          "https://845a958337db.ngrok-free.app/webhook/api/carouselList",
           {
             method: "GET",
             headers: {
