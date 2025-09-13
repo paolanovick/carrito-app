@@ -14,13 +14,16 @@ function App() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const res = await fetch("https://2cd882428218.ngrok-free.app/api", {
-          method: "GET",
-          headers: {
-            "ngrok-skip-browser-warning": "true",
-            "Content-Type": "application/json",
-          },
-        });
+        const res = await fetch(
+          "https://2cd882428218.ngrok-free.app/webhook/api",
+          {
+            method: "GET",
+            headers: {
+              "ngrok-skip-browser-warning": "true",
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         const data = await res.json();
         console.log("Datos recibidos:", data);
