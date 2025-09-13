@@ -55,12 +55,13 @@ function App() {
         <ProductList products={products} addToCart={addToCart} />
       </main>
       <Footer />
-
       {/* Banner estático */}
       <Banner />
 
-      {/* Carrusel dinámico desde API */}
-      <Carrusel apiUrl=" https://2cd882428218.ngrok-free.app/webhook/api" />
+      {/* Carrusel dinámico usando las imágenes de los productos ya cargados */}
+      <Carrusel
+        images={products.map((p) => p.imagen_principal).filter((img) => img)}
+      />
     </>
   );
 }
