@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Banner from "./components/Banner";
 import ProductList from "./components/ProductList";
-
 import Footer from "./components/Footer";
+import Carrusel from "./components/Carrusel";
 import "./index.css";
 
 function App() {
@@ -14,7 +14,7 @@ function App() {
     const fetchProducts = async () => {
       try {
         const res = await fetch(
-          "https://ff910aaa68e6.ngrok-free.app/webhook/api",
+          " https://2cd882428218.ngrok-free.app/webhook/api",
           {
             headers: { "ngrok-skip-browser-warning": "true" },
           }
@@ -48,14 +48,20 @@ function App() {
     setCart((prev) => prev.filter((item) => item.id !== id));
 
   return (
-    <div>
+    <>
       <Navbar cart={cart} removeFromCart={removeFromCart} />
       <Banner products={products} />
       <main className="main-content">
         <ProductList products={products} addToCart={addToCart} />
       </main>
       <Footer />
-    </div>
+
+      {/* Banner estático */}
+      <Banner />
+
+      {/* Carrusel dinámico desde API */}
+      <Carrusel apiUrl=" https://2cd882428218.ngrok-free.app/webhook/api" />
+    </>
   );
 }
 
