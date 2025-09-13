@@ -60,9 +60,7 @@ const CarouselList = ({ images }) => {
 
   return (
     <div className="carousel-container">
-      <h2
-        className={`carousel-title ${animateTitle ? "slide-in" : "slide-out"}`}
-      >
+      <h2 className={`carousel-title ${animateTitle ? "slide-in" : "slide-out"}`}>
         IMPERDIBLES DE ESTA TEMPORADA
       </h2>
 
@@ -72,9 +70,7 @@ const CarouselList = ({ images }) => {
             {images.map((image, index) => (
               <div
                 key={image.id || index}
-                className={`carousel-slide ${
-                  index === currentIndex ? "active" : ""
-                }`}
+                className={`carousel-slide ${index === currentIndex ? "active" : ""}`}
               >
                 <img
                   src={image.url || image.imagen || image.src}
@@ -91,9 +87,7 @@ const CarouselList = ({ images }) => {
                       <h3 className="carousel-image-title">{image.titulo}</h3>
                     )}
                     {image.descripcion && (
-                      <p className="carousel-image-description">
-                        {image.descripcion}
-                      </p>
+                      <p className="carousel-image-description">{image.descripcion}</p>
                     )}
                   </div>
                 )}
@@ -103,20 +97,8 @@ const CarouselList = ({ images }) => {
 
           {images.length > 1 && (
             <>
-              <button
-                onClick={prevSlide}
-                className="carousel-nav carousel-nav-prev"
-                aria-label="Imagen anterior"
-              >
-                &#8249;
-              </button>
-              <button
-                onClick={nextSlide}
-                className="carousel-nav carousel-nav-next"
-                aria-label="Imagen siguiente"
-              >
-                &#8250;
-              </button>
+              <button onClick={prevSlide} className="carousel-nav carousel-nav-prev" aria-label="Imagen anterior">&#8249;</button>
+              <button onClick={nextSlide} className="carousel-nav carousel-nav-next" aria-label="Imagen siguiente">&#8250;</button>
             </>
           )}
         </div>
@@ -127,9 +109,7 @@ const CarouselList = ({ images }) => {
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`carousel-dot ${
-                  index === currentIndex ? "active" : ""
-                }`}
+                className={`carousel-dot ${index === currentIndex ? "active" : ""}`}
                 aria-label={`Ir a imagen ${index + 1}`}
               />
             ))}
@@ -150,7 +130,7 @@ const CarouselList = ({ images }) => {
           color: #514628ff;
           text-align: center;
           margin-bottom: 25px;
-          text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
+          text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
         }
 
         /* Animaciones de entrada y salida */
