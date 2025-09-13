@@ -5,21 +5,18 @@ const Modal = ({ product, onClose }) => {
 
   if (!product) return null;
 
-  // Crear array de imágenes para el carrusel: principal + galería
+  // Construir array de imágenes: principal + galería filtrando vacíos
   const gallery = [
     product.imagen_principal,
     ...(product.galeria_imagenes
-      ? Object.values(product.galeria_imagenes)
+      ? Object.values(product.galeria_imagenes).filter(Boolean)
       : []),
   ];
 
-  const nextSlide = () => {
+  const nextSlide = () =>
     setCurrentIndex((prev) => (prev + 1) % gallery.length);
-  };
-
-  const prevSlide = () => {
+  const prevSlide = () =>
     setCurrentIndex((prev) => (prev - 1 + gallery.length) % gallery.length);
-  };
 
   return (
     <div className="modal-overlay">
