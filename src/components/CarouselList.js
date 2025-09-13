@@ -135,9 +135,9 @@ const CarouselList = ({ images }) => {
         }
 
         .carousel-title {
-          font-size: 2.3 rem;
+          font-size: 2.3rem;
           font-weight: 700;
-          color: #392d0dff;
+          color: #514628ff;
           text-align: center;
           margin-bottom: 25px;
           text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
