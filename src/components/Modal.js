@@ -1,11 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 
 const Modal = ({ product, onClose }) => {
   if (!product) return null;
 
+  // Convertir la galería de la API en un array
   const gallery = product.galeria_imagenes
     ? Object.values(product.galeria_imagenes)
     : [];
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const nextImage = () => {
+    setCurrentIndex((prev) => (prev + 1) % gallery.length);
+  };
+
+  const prevImage = () => {
+    setCurrentIndex((prev) => (prev - 1 + gallery.length) % gallery.length);
+  };
 
   return (
     <div className="modal-overlay">
@@ -20,18 +31,40 @@ const Modal = ({ product, onClose }) => {
         </p>
         <p>Precio doble: ${product.doble_precio}</p>
 
-        <div className="modal-gallery">
-          <img src={product.imagen_principal} alt={product.titulo} />
-          {gallery.map((img, index) => (
-            <img key={index} src={img} alt={`${product.titulo} ${index + 1}`} />
-          ))}
-        </div>
+        <p>
+          <strong>Hoteles:</strong>{" "}
+          {product.hoteles?.map((h) => h.nombre).join(", ") ||
+            "No especificado"}
+        </p>
+
+        <p>
+          <strong>Vigencia:</strong> {product.fecha_vigencia_desde} a{" "}
+          {product.fecha_vigencia_hasta}
+        </p>
+
+        {/* Carrusel de galería de imágenes */}
+        {gallery.length > 0 && (
+          <div className="modal-carousel">
+            <button className="carousel-btn prev" onClick={prevImage}>
+              &#8249;
+            </button>
+            <img
+              src={gallery[currentIndex]}
+              alt={`${product.titulo} ${currentIndex + 1}`}
+            />
+            <button className="carousel-btn next" onClick={nextImage}>
+              &#8250;
+            </button>
+          </div>
+        )}
 
         {/* Info extendida de la API */}
-        <div
-          className="modal-description"
-          dangerouslySetInnerHTML={{ __html: product.incluye || "" }}
-        />
+        {product.incluye && (
+          <div
+            className="modal-description"
+            dangerouslySetInnerHTML={{ __html: product.incluye }}
+          />
+        )}
       </div>
 
       <style jsx>{`
@@ -52,11 +85,11 @@ const Modal = ({ product, onClose }) => {
           background: #fff;
           padding: 20px;
           border-radius: 10px;
-          max-width: 800px; /* más grande */
+          max-width: 900px;
           width: 90%;
-          position: relative;
           max-height: 90%;
           overflow-y: auto;
+          position: relative;
         }
 
         .modal-close {
@@ -69,17 +102,41 @@ const Modal = ({ product, onClose }) => {
           cursor: pointer;
         }
 
-        .modal-gallery {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
+        .modal-carousel {
+          position: relative;
           margin: 15px 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
         }
 
-        .modal-gallery img {
-          width: calc(50% - 10px);
+        .modal-carousel img {
+          max-width: 100%;
+          max-height: 400px;
           border-radius: 5px;
           object-fit: cover;
+        }
+
+        .carousel-btn {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          background: rgba(0, 0, 0, 0.5);
+          color: white;
+          border: none;
+          font-size: 2rem;
+          padding: 5px 10px;
+          cursor: pointer;
+          border-radius: 5px;
+          z-index: 10;
+        }
+
+        .carousel-btn.prev {
+          left: 10px;
+        }
+
+        .carousel-btn.next {
+          right: 10px;
         }
 
         .modal-description {
