@@ -131,36 +131,37 @@ const CarouselList = ({ images }) => {
 
       <style jsx>{`
         .carousel-container {
-          margin: 20px 0;
+          margin: 30px 0;
         }
 
         .carousel-title {
-          font-size: 1.5rem;
-          font-weight: bold;
-          color: #333;
-          margin-bottom: 20px;
+          font-size: 1.8rem;
+          font-weight: 700;
+          color: #fdf6e3;
           text-align: center;
+          margin-bottom: 25px;
+          text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
         }
 
         .no-images {
           text-align: center;
-          padding: 40px;
-          color: #666;
+          padding: 50px;
+          color: #aaa;
           font-size: 1.1rem;
         }
 
         .carousel-wrapper {
-          max-width: 800px;
+          max-width: 850px;
           margin: 0 auto;
-          border-radius: 15px;
+          border-radius: 16px;
           overflow: hidden;
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-          background: #fff;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+          background: linear-gradient(135deg, #1b1b1b, #2c2c2c);
         }
 
         .carousel-main {
           position: relative;
-          height: 400px;
+          height: 450px;
           overflow: hidden;
         }
 
@@ -177,11 +178,14 @@ const CarouselList = ({ images }) => {
           width: 100%;
           height: 100%;
           opacity: 0;
-          transition: opacity 0.5s ease-in-out;
+          transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out;
+          transform: scale(0.95);
         }
 
         .carousel-slide.active {
           opacity: 1;
+          transform: scale(1);
+          box-shadow: 0 8px 25px rgba(255, 255, 255, 0.15);
         }
 
         .carousel-image {
@@ -189,6 +193,8 @@ const CarouselList = ({ images }) => {
           height: 100%;
           object-fit: cover;
           display: block;
+          border-radius: 16px;
+          transition: transform 0.6s ease;
         }
 
         .carousel-overlay {
@@ -196,79 +202,91 @@ const CarouselList = ({ images }) => {
           bottom: 0;
           left: 0;
           right: 0;
-          background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-          color: white;
+          background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+          color: #fff;
           padding: 30px 20px 20px;
         }
 
         .carousel-image-title {
           margin: 0 0 10px 0;
-          font-size: 1.3rem;
-          font-weight: bold;
-          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+          font-size: 1.4rem;
+          font-weight: 700;
+          text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
         }
 
         .carousel-image-description {
           margin: 0;
-          font-size: 0.9rem;
-          opacity: 0.9;
+          font-size: 0.95rem;
+          opacity: 0.95;
           line-height: 1.4;
+          color: #f0f0f0;
         }
 
         .carousel-nav {
           position: absolute;
           top: 50%;
           transform: translateY(-50%);
-          background: rgba(0, 0, 0, 0.6);
-          color: white;
+          background: linear-gradient(
+            135deg,
+            rgba(128, 128, 128, 0.6),
+            rgba(64, 64, 64, 0.8)
+          );
+          color: #fff;
           border: none;
           font-size: 2rem;
           padding: 10px 15px;
           cursor: pointer;
           transition: all 0.3s ease;
-          border-radius: 5px;
+          border-radius: 50%;
           z-index: 10;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
 
         .carousel-nav:hover {
-          background: rgba(0, 0, 0, 0.8);
+          background: linear-gradient(
+            135deg,
+            rgba(192, 192, 192, 0.8),
+            rgba(128, 128, 128, 1)
+          );
           transform: translateY(-50%) scale(1.1);
         }
 
         .carousel-nav-prev {
-          left: 15px;
+          left: 20px;
         }
 
         .carousel-nav-next {
-          right: 15px;
+          right: 20px;
         }
 
         .carousel-indicators {
           display: flex;
           justify-content: center;
-          gap: 8px;
+          gap: 10px;
           padding: 15px;
-          background: #f8f9fa;
+          background: rgba(0, 0, 0, 0.5);
+          border-radius: 10px;
+          margin-top: 10px;
         }
 
         .carousel-dot {
           width: 12px;
           height: 12px;
           border-radius: 50%;
-          border: none;
-          background: #ccc;
+          border: 1px solid #fff;
+          background: #888;
           cursor: pointer;
           transition: all 0.3s ease;
         }
 
         .carousel-dot:hover {
-          background: #999;
-          transform: scale(1.2);
+          background: #ccc;
+          transform: scale(1.3);
         }
 
         .carousel-dot.active {
-          background: rgba(128, 130, 47, 0.5); };
-          transform: scale(1.3);
+          background: #f5e26c;
+          transform: scale(1.5);
         }
 
         .carousel-counter {
@@ -276,7 +294,7 @@ const CarouselList = ({ images }) => {
           top: 15px;
           right: 15px;
           background: rgba(0, 0, 0, 0.6);
-          color: white;
+          color: #fff;
           padding: 5px 12px;
           border-radius: 20px;
           font-size: 0.9rem;
@@ -294,7 +312,7 @@ const CarouselList = ({ images }) => {
           }
 
           .carousel-image-title {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
           }
 
           .carousel-image-description {
