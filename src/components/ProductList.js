@@ -15,7 +15,7 @@ const ProductList = ({ products, addToCart, onSelect }) => {
   return (
     <div>
       <h2 className="product-list-title">
-        Productos Disponibles ({products.length})
+        NUESTROS RECOMENDADOS 
       </h2>
       <div className="product-list">
         {products.map((p) => (
