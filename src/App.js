@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
-import Banner from "./components/Banner";
+
 import ProductList from "./components/ProductList";
 import Footer from "./components/Footer";
 
@@ -102,7 +102,7 @@ function App() {
   return (
     <>
       <Navbar cart={cart} removeFromCart={removeFromCart} />
-      <Banner />
+     
       <main className="main-content">
         <ProductList products={products} addToCart={addToCart} />
       </main>
