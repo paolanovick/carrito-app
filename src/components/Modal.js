@@ -1,22 +1,21 @@
 import React, { useState } from "react";
 
 const Modal = ({ product, onClose }) => {
+  // Hooks siempre al inicio
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  if (!product) return null;
+  // Si no hay producto, no mostramos nada
+  if (!product || !product.id) return null;
 
-  // Construir array de imágenes: principal + galería filtrando vacíos
-  const gallery = [
+  const images = [
     product.imagen_principal,
-    ...(product.galeria_imagenes
-      ? Object.values(product.galeria_imagenes).filter(Boolean)
-      : []),
+    ...(product.galeria_imagenes || []),
   ];
 
-  const nextSlide = () =>
-    setCurrentIndex((prev) => (prev + 1) % gallery.length);
-  const prevSlide = () =>
-    setCurrentIndex((prev) => (prev - 1 + gallery.length) % gallery.length);
+  const prevImage = () =>
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  const nextImage = () =>
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
 
   return (
     <div className="modal-overlay">
@@ -25,41 +24,31 @@ const Modal = ({ product, onClose }) => {
           X
         </button>
 
-        {/* Carrusel */}
-        <div className="modal-carousel">
-          <button onClick={prevSlide} className="carousel-nav">
-            &#8249;
-          </button>
-          <img
-            src={gallery[currentIndex]}
-            alt={`${product.titulo} ${currentIndex + 1}`}
-            className="carousel-image"
-          />
-          <button onClick={nextSlide} className="carousel-nav">
-            &#8250;
-          </button>
-        </div>
-
-        {/* Información del paquete */}
-        <h2>{product.titulo}</h2>
+        <h2>{product.titulo.replace(/<br>/g, " ")}</h2>
         <p>
           {product.destinoCiudad}, {product.destinoPais} - {product.cant_noches}{" "}
           noches
         </p>
         <p>Precio doble: ${product.doble_precio}</p>
-        <p>Hotel: {product.hoteles?.hotel?.nombre || "No disponible"}</p>
+        <p>Hotel: {product.hoteles?.[0]?.nombre || "No disponible"}</p>
         <p>
-          Vigencia: {product.fecha_vigencia_desde} a{" "}
-          {product.fecha_vigencia_hasta}
+          Vigencia: {product.fecha_vigencia_desde || "N/A"} →{" "}
+          {product.fecha_vigencia_hasta || "N/A"}
         </p>
 
-        {/* Incluye */}
-        {product.incluye && (
-          <div
-            className="modal-includes"
-            dangerouslySetInnerHTML={{ __html: product.incluye }}
+        <div className="modal-gallery">
+          <button onClick={prevImage}>{"<"}</button>
+          <img
+            src={images[currentIndex]}
+            alt={`${product.titulo} ${currentIndex + 1}`}
           />
-        )}
+          <button onClick={nextImage}>{">"}</button>
+        </div>
+
+        <div
+          className="modal-description"
+          dangerouslySetInnerHTML={{ __html: product.incluye || "" }}
+        />
       </div>
 
       <style jsx>{`
@@ -75,18 +64,16 @@ const Modal = ({ product, onClose }) => {
           align-items: center;
           z-index: 1000;
         }
-
         .modal-content {
           background: #fff;
           padding: 20px;
           border-radius: 10px;
           max-width: 800px;
           width: 90%;
+          position: relative;
           max-height: 90vh;
           overflow-y: auto;
-          position: relative;
         }
-
         .modal-close {
           position: absolute;
           top: 10px;
@@ -96,37 +83,29 @@ const Modal = ({ product, onClose }) => {
           background: none;
           cursor: pointer;
         }
-
-        .modal-carousel {
+        .modal-gallery {
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 20px;
-          position: relative;
+          margin: 15px 0;
         }
-
-        .carousel-image {
-          max-width: 100%;
+        .modal-gallery img {
+          max-width: 600px;
           max-height: 400px;
-          object-fit: cover;
-          border-radius: 5px;
-        }
-
-        .carousel-nav {
-          background: rgba(0, 0, 0, 0.5);
-          color: #fff;
-          border: none;
-          font-size: 2rem;
-          padding: 5px 10px;
-          cursor: pointer;
-          border-radius: 5px;
           margin: 0 10px;
+          object-fit: cover;
+          border-radius: 8px;
         }
-
-        .modal-includes {
+        .modal-gallery button {
+          background: #ddd;
+          border: none;
+          font-size: 1.5rem;
+          cursor: pointer;
+          padding: 5px 10px;
+          border-radius: 5px;
+        }
+        .modal-description {
           margin-top: 15px;
-          font-size: 0.95rem;
-          line-height: 1.5;
         }
       `}</style>
     </div>
