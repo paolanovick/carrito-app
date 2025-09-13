@@ -1,25 +1,29 @@
 import React, { useState } from "react";
 
 const Modal = ({ product, onClose }) => {
-  // Hooks siempre al principio del componente
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  if (!product || Object.keys(product).length === 0) return null;
+  if (!product || !product.rawData) return null;
 
-  const images = product.galeria_imagenes || [];
+  const raw = product.rawData;
 
-  const nextImage = () => {
-    setCurrentIndex((prev) => (prev + 1) % images.length);
-  };
+  // Galería de imágenes
+  const images = raw.galeria_imagenes
+    ? Object.values(raw.galeria_imagenes)
+    : [];
 
-  const prevImage = () => {
+  const nextImage = () => setCurrentIndex((prev) => (prev + 1) % images.length);
+  const prevImage = () =>
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
 
   const hotelName =
-    product.hoteles && product.hoteles.length > 0
-      ? product.hoteles[0].nombre
+    raw.hoteles && raw.hoteles.length > 0
+      ? raw.hoteles[0].nombre
       : "No disponible";
+
+  const incluye = raw.incluye || "";
+  const fechaDesde = raw.fecha_vigencia_desde || "N/A";
+  const fechaHasta = raw.fecha_vigencia_hasta || "N/A";
 
   return (
     <div className="modal-overlay">
@@ -27,7 +31,8 @@ const Modal = ({ product, onClose }) => {
         <button className="modal-close" onClick={onClose}>
           X
         </button>
-        <h2>{product.titulo.replace(/<br>/g, " ").replace(/<[^>]*>/g, "")}</h2>
+
+        <h2>{raw.titulo.replace(/<br>/g, " ").replace(/<[^>]*>/g, "")}</h2>
         <p>
           {product.destinoCiudad}, {product.destinoPais} - {product.cant_noches}{" "}
           noches
@@ -35,11 +40,9 @@ const Modal = ({ product, onClose }) => {
         <p>Precio doble: ${product.doble_precio}</p>
         <p>Hotel: {hotelName}</p>
         <p>
-          Vigencia: {product.fecha_vigencia_desde || "N/A"} →{" "}
-          {product.fecha_vigencia_hasta || "N/A"}
+          Vigencia: {fechaDesde} → {fechaHasta}
         </p>
 
-        {/* Carrusel de imágenes */}
         {images.length > 0 && (
           <div className="carousel">
             <button className="carousel-btn prev" onClick={prevImage}>
@@ -47,7 +50,7 @@ const Modal = ({ product, onClose }) => {
             </button>
             <img
               src={images[currentIndex]}
-              alt={`${product.titulo} ${currentIndex + 1}`}
+              alt={`Imagen ${currentIndex + 1}`}
             />
             <button className="carousel-btn next" onClick={nextImage}>
               ›
@@ -55,10 +58,9 @@ const Modal = ({ product, onClose }) => {
           </div>
         )}
 
-        {/* Descripción incluye */}
         <div
           className="modal-description"
-          dangerouslySetInnerHTML={{ __html: product.incluye }}
+          dangerouslySetInnerHTML={{ __html: incluye }}
         />
       </div>
 
@@ -126,7 +128,6 @@ const Modal = ({ product, onClose }) => {
         .carousel-btn.prev {
           left: 10px;
         }
-
         .carousel-btn.next {
           right: 10px;
         }
