@@ -1,21 +1,23 @@
 import React, { useState } from "react";
 
 const Modal = ({ product, onClose }) => {
-  // Hooks siempre al inicio
+  if (!product || Object.keys(product).length === 0) return null;
+
+  const images = product.galeria_imagenes || [];
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Si no hay producto, no mostramos nada
-  if (!product || !product.id) return null;
+  const nextImage = () => {
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
 
-  const images = [
-    product.imagen_principal,
-    ...(product.galeria_imagenes || []),
-  ];
+  const prevImage = () => {
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
 
-  const prevImage = () =>
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  const nextImage = () =>
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  const hotelName =
+    product.hoteles && product.hoteles.length > 0
+      ? product.hoteles[0].nombre
+      : "No disponible";
 
   return (
     <div className="modal-overlay">
@@ -23,31 +25,38 @@ const Modal = ({ product, onClose }) => {
         <button className="modal-close" onClick={onClose}>
           X
         </button>
-
-        <h2>{product.titulo.replace(/<br>/g, " ")}</h2>
+        <h2>{product.titulo.replace(/<br>/g, " ").replace(/<[^>]*>/g, "")}</h2>
         <p>
           {product.destinoCiudad}, {product.destinoPais} - {product.cant_noches}{" "}
           noches
         </p>
         <p>Precio doble: ${product.doble_precio}</p>
-        <p>Hotel: {product.hoteles?.[0]?.nombre || "No disponible"}</p>
+        <p>Hotel: {hotelName}</p>
         <p>
           Vigencia: {product.fecha_vigencia_desde || "N/A"} →{" "}
           {product.fecha_vigencia_hasta || "N/A"}
         </p>
 
-        <div className="modal-gallery">
-          <button onClick={prevImage}>{"<"}</button>
-          <img
-            src={images[currentIndex]}
-            alt={`${product.titulo} ${currentIndex + 1}`}
-          />
-          <button onClick={nextImage}>{">"}</button>
-        </div>
+        {/* Carrusel de imágenes */}
+        {images.length > 0 && (
+          <div className="carousel">
+            <button className="carousel-btn prev" onClick={prevImage}>
+              ‹
+            </button>
+            <img
+              src={images[currentIndex]}
+              alt={`${product.titulo} ${currentIndex + 1}`}
+            />
+            <button className="carousel-btn next" onClick={nextImage}>
+              ›
+            </button>
+          </div>
+        )}
 
+        {/* Descripción incluye */}
         <div
           className="modal-description"
-          dangerouslySetInnerHTML={{ __html: product.incluye || "" }}
+          dangerouslySetInnerHTML={{ __html: product.incluye }}
         />
       </div>
 
@@ -63,17 +72,18 @@ const Modal = ({ product, onClose }) => {
           justify-content: center;
           align-items: center;
           z-index: 1000;
+          overflow-y: auto;
         }
+
         .modal-content {
           background: #fff;
-          padding: 20px;
-          border-radius: 10px;
+          padding: 30px;
+          border-radius: 12px;
           max-width: 800px;
           width: 90%;
           position: relative;
-          max-height: 90vh;
-          overflow-y: auto;
         }
+
         .modal-close {
           position: absolute;
           top: 10px;
@@ -83,29 +93,44 @@ const Modal = ({ product, onClose }) => {
           background: none;
           cursor: pointer;
         }
-        .modal-gallery {
+
+        .carousel {
           display: flex;
           align-items: center;
           justify-content: center;
-          margin: 15px 0;
+          margin: 20px 0;
+          position: relative;
         }
-        .modal-gallery img {
-          max-width: 600px;
+
+        .carousel img {
+          max-width: 100%;
           max-height: 400px;
-          margin: 0 10px;
-          object-fit: cover;
           border-radius: 8px;
         }
-        .modal-gallery button {
-          background: #ddd;
+
+        .carousel-btn {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          background: rgba(0, 0, 0, 0.4);
           border: none;
-          font-size: 1.5rem;
+          color: #fff;
+          font-size: 2rem;
           cursor: pointer;
           padding: 5px 10px;
-          border-radius: 5px;
+          border-radius: 50%;
         }
+
+        .carousel-btn.prev {
+          left: 10px;
+        }
+
+        .carousel-btn.next {
+          right: 10px;
+        }
+
         .modal-description {
-          margin-top: 15px;
+          margin-top: 20px;
         }
       `}</style>
     </div>
