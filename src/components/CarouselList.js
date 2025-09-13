@@ -267,7 +267,7 @@ const CarouselList = ({ images }) => {
         }
 
         .carousel-dot.active {
-          background: #007bff;
+          background: rgba(128, 130, 47, 0.5); };
           transform: scale(1.3);
         }
 
