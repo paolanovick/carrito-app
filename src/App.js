@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
-
+import CarouselList from "./components/CarouselList";
 import ProductList from "./components/ProductList";
 import Footer from "./components/Footer";
 
 function App() {
   const [cart, setCart] = useState([]);
   const [products, setProducts] = useState([]);
+  const [images, setImages] = useState([]); // Nueva línea para imágenes
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -77,7 +78,53 @@ function App() {
       }
     };
 
+    // Nueva función para obtener imágenes del carrusel
+    const fetchImages = async () => {
+      try {
+        const res = await fetch(
+          "https://845a958337db.ngrok-free.app/webhook/api/carrusel",
+          {
+            method: "GET",
+            headers: {
+              "ngrok-skip-browser-warning": "true",
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data = await res.json();
+        console.log("Imágenes recibidas:", data);
+
+        // Procesar imágenes - adapta según la estructura que devuelva tu n8n
+        const imagenesCarrusel =
+          data?.root?.carrusel?.imagen ||
+          data?.imagenes ||
+          data?.carrusel ||
+          [];
+        const formattedImages = Array.isArray(imagenesCarrusel)
+          ? imagenesCarrusel
+          : [imagenesCarrusel];
+
+        const processedImages = formattedImages
+          .filter((img) => img && (img.url || img.imagen || img.src))
+          .map((img, index) => ({
+            id: img.id || `image-${index}`,
+            url: img.url || img.imagen || img.src,
+            titulo: img.titulo || img.title || `Imagen ${index + 1}`,
+            descripcion: img.descripcion || img.description || "",
+            alt: img.alt || img.titulo || `Imagen ${index + 1}`,
+          }));
+
+        console.log("Imágenes procesadas:", processedImages);
+        setImages(processedImages);
+      } catch (err) {
+        console.error("Error cargando imágenes:", err);
+        setImages([]);
+      }
+    };
+
     fetchProducts();
+    fetchImages(); // Llamar a la nueva función
   }, []);
 
   const addToCart = (product) => setCart((prev) => [...prev, product]);
@@ -102,7 +149,7 @@ function App() {
   return (
     <>
       <Navbar cart={cart} removeFromCart={removeFromCart} />
-     
+      <CarouselList images={images} />
       <main className="main-content">
         <ProductList products={products} addToCart={addToCart} />
       </main>
