@@ -276,23 +276,25 @@ header h1 {
 
 .product-card button {
   margin-top: auto;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #1976d2, #42a5f5);
-  color: white;
-  border: none;
-  border-radius: 8px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #ffd700, #ffbf00); /* degradado dorado */
+  color: #1c1c1c;
+  font-weight: 700;
+  border: 2px solid #fff3b0;
+  border-radius: 12px;
   cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 0.9rem;
+  letter-spacing: 1px;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5);
 }
 
 .product-card button:hover {
-  background: linear-gradient(135deg, #115293, #1976d2);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+  background: linear-gradient(135deg, #ffea70, #ffd700);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 16px rgba(255, 223, 0, 0.8), 0 3px 8px rgba(0,0,0,0.4);
+  color: #1a1a1a;
 }
 
 /* Loading, Error, and No Products States */
