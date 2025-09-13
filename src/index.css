@@ -283,7 +283,7 @@ header h1 {
 .product-card button {
   margin-top: auto;
   padding: 10px 18px; /* más pequeño y estilizado */
-  background: linear-gradient(135deg, #412d04, #645401); /* degradado azul suave */
+  background: linear-gradient(135deg, #78581a, hsl(50, 98%, 35%)); /* degradado azul suave */
   color: #070707; /* texto blanco */
   font-weight: 600;
   border: none;
