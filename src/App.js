@@ -3,13 +3,15 @@ import Navbar from "./components/Navbar";
 import CarouselList from "./components/CarouselList";
 import ProductList from "./components/ProductList";
 import Footer from "./components/Footer";
+import Modal from "./components/Modal";
 
 function App() {
   const [cart, setCart] = useState([]);
   const [products, setProducts] = useState([]);
-  const [images, setImages] = useState([]); // Nueva línea para imágenes
+  const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null); // 👈 nuevo estado para modal
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -65,17 +67,17 @@ function App() {
                 : null) ||
               p.pais ||
               "Desconocido",
+            rawData: p, // 👈 paquete completo para modal
           }));
 
         console.log("Productos procesados:", processedProducts);
         setProducts(processedProducts);
         setError(null);
 
-        // --- NUEVO: Procesar imágenes del carrusel desde los paquetes ---
-        // --- NUEVO: Procesar imágenes del carrusel desde los paquetes ---
+        // Procesar imágenes carrusel
         const processedImages = formatted
           .filter((p) => p && p.imagen_principal)
-          .slice(0, 7) // <-- Limitar a 7 imágenes
+          .slice(0, 7)
           .map((p, index) => ({
             id: p.paquete_externo_id || `image-${index}`,
             url: p.imagen_principal,
@@ -97,7 +99,7 @@ function App() {
       } catch (err) {
         console.error("Error cargando productos:", err);
         setError(`Error al cargar productos: ${err.message}`);
-        setImages([]); // también vaciar carrusel en error
+        setImages([]);
       } finally {
         setLoading(false);
       }
@@ -125,16 +127,27 @@ function App() {
       </div>
     );
 
-  return (
-    <>
-      <Navbar cart={cart} removeFromCart={removeFromCart} />
-      <CarouselList images={images} />
-      <main className="main-content">
-        <ProductList products={products} addToCart={addToCart} />
-      </main>
-      <Footer />
-    </>
-  );
+ return (
+   <>
+     <Navbar cart={cart} removeFromCart={removeFromCart} />
+     <CarouselList images={images} />
+     <main className="main-content">
+       <ProductList
+         products={products}
+         addToCart={addToCart}
+         onSelect={(product) => setSelectedProduct(product)} // abrir modal
+       />
+     </main>
+     {selectedProduct && (
+       <Modal
+         product={selectedProduct}
+         onClose={() => setSelectedProduct(null)}
+       />
+     )}
+     <Footer />
+   </>
+ );
+
 }
 
 export default App;

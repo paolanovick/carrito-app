@@ -1,7 +1,7 @@
 import React from "react";
 import ProductCard from "./ProductCard";
 
-const ProductList = ({ products, addToCart }) => {
+const ProductList = ({ products, addToCart, onSelect }) => {
   if (!products) return null;
 
   if (products.length === 0) {
@@ -19,7 +19,12 @@ const ProductList = ({ products, addToCart }) => {
       </h2>
       <div className="product-list">
         {products.map((p) => (
-          <ProductCard key={p.id} product={p} addToCart={addToCart} />
+          <ProductCard
+            key={p.id}
+            product={p}
+            addToCart={addToCart}
+            onSelect={onSelect} // 👈 pasamos la función para abrir el modal
+          />
         ))}
       </div>
     </div>
