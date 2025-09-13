@@ -12,7 +12,7 @@ const ProductList = ({ addToCart }) => {
         setLoading(true);
 
         const response = await fetch(
-          "https://ff910aaa68e6.ngrok-free.app/webhook/api",
+          "https://3a08fb666a60.ngrok-free.app/webhook/api",
           {
             method: "GET",
             headers: {
