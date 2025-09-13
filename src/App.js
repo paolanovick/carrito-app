@@ -17,7 +17,7 @@ function App() {
       try {
         setLoading(true);
         const res = await fetch(
-          "https://3a08fb666a60.ngrok-free.app/webhook/api",
+          "https://2cd882428218.ngrok-free.app/webhook/api",
           {
             method: "GET",
             headers: {
