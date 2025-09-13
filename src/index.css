@@ -225,25 +225,19 @@ header h1 {
 
 /* Product Cards */
 .product-card {
-  background-color: white;
-  border-radius: 12px;
-  border: 1px solid #e0e0e0;
+  background: radial-gradient(circle at top left, #3a3a3a, #1c1c1c);
+  border-radius: 16px;
+  border: 1px solid #ffd700; /* borde dorado */
   padding: 20px;
   text-align: center;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
-  width: 100%;
-  max-width: 320px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 400px;
+  box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3), 0 4px 12px rgba(0,0,0,0.4);
+  transition: all 0.4s ease;
 }
 
 .product-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-  border-color: #3498db;
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(255, 215, 0, 0.6), 0 6px 18px rgba(0,0,0,0.5);
+  border-color: #ffd700;
 }
 
 .product-card img {
