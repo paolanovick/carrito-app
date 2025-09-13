@@ -72,8 +72,10 @@ function App() {
         setError(null);
 
         // --- NUEVO: Procesar imágenes del carrusel desde los paquetes ---
+        // --- NUEVO: Procesar imágenes del carrusel desde los paquetes ---
         const processedImages = formatted
           .filter((p) => p && p.imagen_principal)
+          .slice(0, 7) // <-- Limitar a 7 imágenes
           .map((p, index) => ({
             id: p.paquete_externo_id || `image-${index}`,
             url: p.imagen_principal,
