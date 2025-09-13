@@ -43,7 +43,7 @@ const CarouselList = ({ images }) => {
 
   return (
     <div className="carousel-container">
-      <h2 className="carousel-title">Carrusel de Imágenes ({images.length})</h2>
+      <h2 className="carousel-title">IMPERDIBLES DE ESTA TEMPORADA</h2>
 
       <div className="carousel-wrapper">
         {/* Imagen Principal */}
