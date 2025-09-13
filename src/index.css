@@ -2,7 +2,10 @@
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f9f9f9;
+  /* Fondo elegante: degradado suave con textura */
+  background: linear-gradient(135deg, #1c1c1c, #2c2a2a);
+  background-image: url('https://www.transparenttextures.com/patterns/gplay.png'); /* Patrón sutil */
+  color: #f5f5f5;
 }
 
 /* ------------------- Logo ------------------- */
