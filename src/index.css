@@ -280,27 +280,30 @@ header h1 {
 }
 
 /* ------------------- Botones de tarjetas estilo moderno ------------------- */
+/* ------------------- Botones finos y separados ------------------- */
 .product-card button {
-  margin-top: auto;
-  padding: 10px 18px; /* más pequeño y estilizado */
-  background: linear-gradient(135deg, #78581a, hsl(50, 98%, 35%)); /* degradado azul suave */
-  color: #070707; /* texto blanco */
+  margin-top: 15px; /* separa el botón del contenido de arriba */
+  padding: 6px 14px; /* más delgado */
+  background: linear-gradient(135deg, #78581a, hsl(50, 98%, 35%)); /* degradado elegante */
+  color: #070707; 
   font-weight: 600;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px; 
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-size: 0.85rem; /* más pequeño */
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  font-size: 0.8rem; /* más pequeño */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  display: inline-block; /* evita que ocupe todo el ancho */
 }
 
 .product-card button:hover {
-  background: linear-gradient(135deg, #00f2fe, #4facfe); /* efecto inverso */
-  transform: translateY(-2px);
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, hsl(50, 98%, 40%), #78581a);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.3);
 }
+
 
 
 /* Loading, Error, and No Products States */
