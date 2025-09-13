@@ -1,22 +1,19 @@
 import React, { useState } from "react";
 
 const Modal = ({ product, onClose }) => {
+  const [currentIndex, setCurrentIndex] = useState(0); // ✅ al inicio del componente
+
   if (!product) return null;
 
-  // Convertir la galería de la API en un array
+  // Convertir galeria_imagenes a array
   const gallery = product.galeria_imagenes
     ? Object.values(product.galeria_imagenes)
     : [];
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  const nextImage = () => {
+  const nextImage = () =>
     setCurrentIndex((prev) => (prev + 1) % gallery.length);
-  };
-
-  const prevImage = () => {
+  const prevImage = () =>
     setCurrentIndex((prev) => (prev - 1 + gallery.length) % gallery.length);
-  };
 
   return (
     <div className="modal-overlay">
@@ -24,6 +21,7 @@ const Modal = ({ product, onClose }) => {
         <button className="modal-close" onClick={onClose}>
           X
         </button>
+
         <h2>{product.titulo}</h2>
         <p>
           {product.destinoCiudad}, {product.destinoPais} - {product.cant_noches}{" "}
@@ -42,7 +40,7 @@ const Modal = ({ product, onClose }) => {
           {product.fecha_vigencia_hasta}
         </p>
 
-        {/* Carrusel de galería de imágenes */}
+        {/* Carrusel de galería */}
         {gallery.length > 0 && (
           <div className="modal-carousel">
             <button className="carousel-btn prev" onClick={prevImage}>
@@ -58,10 +56,10 @@ const Modal = ({ product, onClose }) => {
           </div>
         )}
 
-        {/* Info extendida de la API */}
+        {/* Incluye */}
         {product.incluye && (
           <div
-            className="modal-description"
+            className="modal-incluye"
             dangerouslySetInnerHTML={{ __html: product.incluye }}
           />
         )}
@@ -139,7 +137,7 @@ const Modal = ({ product, onClose }) => {
           right: 10px;
         }
 
-        .modal-description {
+        .modal-incluye {
           margin-top: 15px;
         }
       `}</style>
