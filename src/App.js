@@ -70,61 +70,38 @@ function App() {
         console.log("Productos procesados:", processedProducts);
         setProducts(processedProducts);
         setError(null);
+
+        // --- NUEVO: Procesar imágenes del carrusel desde los paquetes ---
+        const processedImages = formatted
+          .filter((p) => p && p.imagen_principal)
+          .map((p, index) => ({
+            id: p.paquete_externo_id || `image-${index}`,
+            url: p.imagen_principal,
+            titulo:
+              p.titulo
+                ?.replace(/<br>/g, " ")
+                ?.replace(/<[^>]*>/g, "")
+                ?.trim() || `Imagen ${index + 1}`,
+            descripcion: "",
+            alt:
+              p.titulo
+                ?.replace(/<br>/g, " ")
+                ?.replace(/<[^>]*>/g, "")
+                ?.trim() || `Imagen ${index + 1}`,
+          }));
+
+        console.log("Imágenes del carrusel procesadas:", processedImages);
+        setImages(processedImages);
       } catch (err) {
         console.error("Error cargando productos:", err);
         setError(`Error al cargar productos: ${err.message}`);
+        setImages([]); // también vaciar carrusel en error
       } finally {
         setLoading(false);
       }
     };
 
-    // Nueva función para obtener imágenes del carrusel
-    const fetchImages = async () => {
-      try {
-        const res = await fetch(
-          "https://845a958337db.ngrok-free.app/webhook/api/carouselList",
-          {
-            method: "GET",
-            headers: {
-              "ngrok-skip-browser-warning": "true",
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        const data = await res.json();
-        console.log("Imágenes recibidas:", data);
-
-        // Procesar imágenes - adapta según la estructura que devuelva tu n8n
-        const imagenesCarrusel =
-          data?.root?.carrusel?.imagen ||
-          data?.imagenes ||
-          data?.carrusel ||
-          [];
-        const formattedImages = Array.isArray(imagenesCarrusel)
-          ? imagenesCarrusel
-          : [imagenesCarrusel];
-
-        const processedImages = formattedImages
-          .filter((img) => img && (img.url || img.imagen || img.src))
-          .map((img, index) => ({
-            id: img.id || `image-${index}`,
-            url: img.url || img.imagen || img.src,
-            titulo: img.titulo || img.title || `Imagen ${index + 1}`,
-            descripcion: img.descripcion || img.description || "",
-            alt: img.alt || img.titulo || `Imagen ${index + 1}`,
-          }));
-
-        console.log("Imágenes procesadas:", processedImages);
-        setImages(processedImages);
-      } catch (err) {
-        console.error("Error cargando imágenes:", err);
-        setImages([]);
-      }
-    };
-
     fetchProducts();
-    fetchImages(); // Llamar a la nueva función
   }, []);
 
   const addToCart = (product) => setCart((prev) => [...prev, product]);
