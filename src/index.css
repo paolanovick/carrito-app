@@ -205,11 +205,12 @@ header h1 {
 
 /* Product List Title */
 .product-list-title {
-  text-align: center;
-  margin-bottom: 40px;
-  color: #333;
-  font-size: 1.8rem;
-  font-weight: 600;
+ font-size: 2.3rem;
+          font-weight: 700;
+          color: #514628ff;
+          text-align: center;
+          margin-bottom: 25px;
+          text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
 }
 
 /* Product List Grid - MUY IMPORTANTE: Espaciado horizontal aumentado */
