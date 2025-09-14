@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers } from "react-icons/fa";
 
-
 const SearchBar = ({ onSearch }) => {
   const [activeTab, setActiveTab] = useState("paquetes");
   const [formData, setFormData] = useState({
