@@ -130,36 +130,31 @@ function App() {
   };
 
 
- return (
-   <>
-     <Navbar cart={cart} removeFromCart={removeFromCart} />
-     <CarouselList images={images} />
-     <main className="main-content">
-       <ProductList
-         products={products}
-         addToCart={addToCart}
-         onSelect={(product) => setSelectedProduct(product)} // abrir modal
-       />
-     </main>
-     {/* 🔍 Buscador */}
-     <SearchBar onSearch={handleSearch} />
+return (
+  <>
+    <Navbar cart={cart} removeFromCart={removeFromCart} />
+    <CarouselList images={images} />
 
-     <main className="main-content">
-       <ProductList
-         products={products}
-         addToCart={addToCart}
-         onSelect={(product) => setSelectedProduct(product)}
-       />
-     </main>
-     {selectedProduct && (
-       <Modal
-         product={selectedProduct}
-         onClose={() => setSelectedProduct(null)}
-       />
-     )}
-     <Footer />
-   </>
- );
+    {/* 🔍 Buscador (arriba del listado) */}
+    <SearchBar onSearch={handleSearch} />
+
+    <main className="main-content">
+      <ProductList
+        products={products}
+        addToCart={addToCart}
+        onSelect={(product) => setSelectedProduct(product)} // abrir modal
+      />
+    </main>
+
+    {selectedProduct && (
+      <Modal
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+      />
+    )}
+    <Footer />
+  </>
+);
 
 }
 
