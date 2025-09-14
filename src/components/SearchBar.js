@@ -11,9 +11,8 @@ const SearchBar = ({ onSearch }) => {
     viajeros: "2 adultos",
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -21,22 +20,24 @@ const SearchBar = ({ onSearch }) => {
   };
 
   return (
-    <div className="searchbar-container">
+    <div className="searchbar-wrapper">
       {/* Tabs */}
-      <div className="tabs">
-        {["paquetes", "vuelos", "hoteles", "autos", "circuitos"].map((tab) => (
+      <div className="searchbar-tabs">
+        {["Paquetes", "Vuelos", "Hoteles", "Autos", "Circuitos"].map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`tab-btn ${activeTab === tab ? "active" : ""}`}
+            className={`tab-btn ${
+              activeTab === tab.toLowerCase() ? "active" : ""
+            }`}
+            onClick={() => setActiveTab(tab.toLowerCase())}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab}
           </button>
         ))}
       </div>
 
       {/* Formulario */}
-      <form onSubmit={handleSubmit} className="form-grid">
+      <form onSubmit={handleSubmit} className="searchbar-form">
         <div className="form-group">
           <label>
             <FaMapMarkerAlt /> Ciudad de Salida
@@ -44,9 +45,9 @@ const SearchBar = ({ onSearch }) => {
           <input
             type="text"
             name="salida"
+            placeholder="Ej: Buenos Aires"
             value={formData.salida}
             onChange={handleChange}
-            placeholder="Seleccionar"
           />
         </div>
 
@@ -57,9 +58,9 @@ const SearchBar = ({ onSearch }) => {
           <input
             type="text"
             name="destino"
+            placeholder="Ej: Madrid"
             value={formData.destino}
             onChange={handleChange}
-            placeholder="Seleccionar"
           />
         </div>
 
@@ -87,11 +88,9 @@ const SearchBar = ({ onSearch }) => {
           />
         </div>
 
-        <div className="btn-container">
-          <button type="submit" className="btn-buscar">
-            BUSCAR
-          </button>
-        </div>
+        <button type="submit" className="btn-buscar">
+          BUSCAR
+        </button>
       </form>
     </div>
   );
