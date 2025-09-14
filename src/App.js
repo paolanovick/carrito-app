@@ -17,16 +17,13 @@ function App() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const res = await fetch(
-          "https://845a958337db.ngrok-free.app/webhook/api",
-          {
-            method: "GET",
-            headers: {
-              "ngrok-skip-browser-warning": "true",
-              "Content-Type": "application/json",
-            },
-          }
-        );
+       const res = await fetch(
+         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
+         {
+           method: "GET",
+          
+         }
+       );
 
         const data = await res.json();
         console.log("Datos recibidos:", data);
