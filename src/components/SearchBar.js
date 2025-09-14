@@ -1,126 +1,99 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { FaMapMarkerAlt, FaCalendarAlt, FaUsers } from "react-icons/fa";
+import "./SearchBar.css";
 
 const SearchBar = ({ onSearch }) => {
-  const [tipo, setTipo] = useState("paquetes"); // paquetes | vuelos | hoteles
-  const [fechaDesde, setFechaDesde] = useState("");
-  const [fechaHasta, setFechaHasta] = useState("");
-  const [destino, setDestino] = useState("");
+  const [activeTab, setActiveTab] = useState("paquetes");
+  const [formData, setFormData] = useState({
+    salida: "",
+    destino: "",
+    fecha: "",
+    viajeros: "2 adultos",
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSearch({ tipo, fechaDesde, fechaHasta, destino });
+    onSearch({ ...formData, tipo: activeTab });
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      style={{
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "10px",
-        margin: "20px auto",
-        justifyContent: "center",
-        alignItems: "center",
-        maxWidth: "900px",
-      }}
-    >
-      {/* Botones tipo */}
-      <div style={{ display: "flex", gap: "10px" }}>
-        <button
-          type="button"
-          onClick={() => setTipo("paquetes")}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: tipo === "paquetes" ? "#007bff" : "#f1f1f1",
-            color: tipo === "paquetes" ? "#fff" : "#000",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          Paquetes
-        </button>
-        <button
-          type="button"
-          onClick={() => setTipo("vuelos")}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: tipo === "vuelos" ? "#007bff" : "#f1f1f1",
-            color: tipo === "vuelos" ? "#fff" : "#000",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          Vuelos
-        </button>
-        <button
-          type="button"
-          onClick={() => setTipo("hoteles")}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: tipo === "hoteles" ? "#007bff" : "#f1f1f1",
-            color: tipo === "hoteles" ? "#fff" : "#000",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          Hoteles
-        </button>
+    <div className="searchbar-container">
+      {/* Tabs */}
+      <div className="tabs">
+        {["paquetes", "vuelos", "hoteles", "autos", "circuitos"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`tab-btn ${activeTab === tab ? "active" : ""}`}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
       </div>
 
-      {/* Fechas */}
-      <input
-        type="date"
-        value={fechaDesde}
-        onChange={(e) => setFechaDesde(e.target.value)}
-        style={{
-          padding: "10px",
-          borderRadius: "6px",
-          border: "1px solid #ccc",
-        }}
-      />
-      <input
-        type="date"
-        value={fechaHasta}
-        onChange={(e) => setFechaHasta(e.target.value)}
-        style={{
-          padding: "10px",
-          borderRadius: "6px",
-          border: "1px solid #ccc",
-        }}
-      />
+      {/* Formulario */}
+      <form onSubmit={handleSubmit} className="form-grid">
+        <div className="form-group">
+          <label>
+            <FaMapMarkerAlt /> Ciudad de Salida
+          </label>
+          <input
+            type="text"
+            name="salida"
+            value={formData.salida}
+            onChange={handleChange}
+            placeholder="Seleccionar"
+          />
+        </div>
 
-      {/* Destino */}
-      <input
-        type="text"
-        placeholder="Destino..."
-        value={destino}
-        onChange={(e) => setDestino(e.target.value)}
-        style={{
-          padding: "10px",
-          borderRadius: "6px",
-          border: "1px solid #ccc",
-          minWidth: "200px",
-        }}
-      />
+        <div className="form-group">
+          <label>
+            <FaMapMarkerAlt /> Ciudad de Destino
+          </label>
+          <input
+            type="text"
+            name="destino"
+            value={formData.destino}
+            onChange={handleChange}
+            placeholder="Seleccionar"
+          />
+        </div>
 
-      {/* Botón buscar */}
-      <button
-        type="submit"
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#28a745",
-          color: "#fff",
-          border: "none",
-          borderRadius: "6px",
-          cursor: "pointer",
-        }}
-      >
-        Buscar
-      </button>
-    </form>
+        <div className="form-group">
+          <label>
+            <FaCalendarAlt /> Fecha de Salida
+          </label>
+          <input
+            type="date"
+            name="fecha"
+            value={formData.fecha}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>
+            <FaUsers /> Viajeros
+          </label>
+          <input
+            type="text"
+            name="viajeros"
+            value={formData.viajeros}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="btn-container">
+          <button type="submit" className="btn-buscar">
+            BUSCAR
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 

@@ -501,3 +501,95 @@ footer p {
   margin: 0;
   font-size: 1rem;
 }
+.searchbar-container {
+  background: #d8b4e2; /* lila suave */
+  padding: 20px;
+  border-radius: 16px;
+  max-width: 1000px;
+  margin: 20px auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  padding: 8px 20px;
+  font-weight: 600;
+  border-radius: 20px;
+  cursor: pointer;
+  color: #444;
+  transition: 0.2s;
+}
+
+.tab-btn.active {
+  background: white;
+  color: #6a1b9a;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* Formulario */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  align-items: end;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  color: #333;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.form-group input {
+  padding: 10px 14px;
+  border-radius: 25px;
+  border: 1px solid #ccc;
+  outline: none;
+  font-size: 14px;
+}
+
+.form-group input:focus {
+  border-color: #8e24aa;
+  box-shadow: 0 0 4px rgba(142, 36, 170, 0.4);
+}
+
+/* Botón */
+.btn-container {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.btn-buscar {
+  background: #8e24aa;
+  color: white;
+  font-weight: bold;
+  padding: 12px 40px;
+  border-radius: 30px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-buscar:hover {
+  background: #6a1b9a;
+}
