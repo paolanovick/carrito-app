@@ -13,10 +13,12 @@ const SearchBar = ({ onSearch }) => {
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSearch({ ...formData, tipo: activeTab });
-  };
+ const handleSubmit = (e) => {
+   e.preventDefault();
+   console.log("Datos antes de enviar:", formData);
+   onSearch({ ...formData, tipo: activeTab });
+ };
+
 
   return (
     <div className="searchbar-wrapper">

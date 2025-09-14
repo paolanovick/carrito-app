@@ -124,10 +124,72 @@ function App() {
         <button onClick={() => window.location.reload()}>Reintentar</button>
       </div>
     );
-  const handleSearch = (filters) => {
-    console.log("Filtros aplicados:", filters);
-    // 👉 acá más adelante hacemos el fetch a n8n con filtros
-  };
+ const handleSearch = async (filters) => {
+   console.log("Filtros aplicados:", filters);
+   setLoading(true);
+   setError(null);
+
+   try {
+     const response = await fetch(
+       "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
+       {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify(filters),
+       }
+     );
+
+     if (!response.ok) throw new Error("Error al buscar en n8n");
+
+     const data = await response.json();
+
+     const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
+     const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
+
+     const processedProducts = formatted
+       .filter((p) => p && p.titulo)
+       .map((p, index) => ({
+         id: p.paquete_externo_id || `package-${index}`,
+         titulo:
+           p.titulo
+             ?.replace(/<br>/g, " ")
+             ?.replace(/<[^>]*>/g, "")
+             ?.trim() || "Sin título",
+         imagen_principal:
+           p.imagen_principal || "https://via.placeholder.com/200",
+         url: p.url?.trim() || "#",
+         cant_noches: parseInt(p.cant_noches) || 0,
+         doble_precio: parseFloat(
+           p.doble_precio ||
+             p.salidas?.salida?.[0]?.doble_precio ||
+             p.precio ||
+             0
+         ),
+         destinoCiudad:
+           p.destinos?.destino?.ciudad ||
+           (Array.isArray(p.destinos?.destino)
+             ? p.destinos.destino[0]?.ciudad
+             : null) ||
+           p.ciudad ||
+           "Desconocido",
+         destinoPais:
+           p.destinos?.destino?.pais ||
+           (Array.isArray(p.destinos?.destino)
+             ? p.destinos.destino[0]?.pais
+             : null) ||
+           p.pais ||
+           "Desconocido",
+         rawData: p,
+       }));
+
+     setProducts(processedProducts);
+   } catch (err) {
+     console.error("Error al buscar paquetes:", err);
+     setError("No se pudieron obtener los resultados. Intenta nuevamente.");
+   } finally {
+     setLoading(false);
+   }
+ };
 
 
 return (
