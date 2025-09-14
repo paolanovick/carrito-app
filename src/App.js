@@ -4,6 +4,7 @@ import CarouselList from "./components/CarouselList";
 import ProductList from "./components/ProductList";
 import Footer from "./components/Footer";
 import Modal from "./components/Modal";
+import SearchBar from "./components/SearchBar";
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -123,6 +124,11 @@ function App() {
         <button onClick={() => window.location.reload()}>Reintentar</button>
       </div>
     );
+  const handleSearch = (filters) => {
+    console.log("Filtros aplicados:", filters);
+    // 👉 acá más adelante hacemos el fetch a n8n con filtros
+  };
+
 
  return (
    <>
@@ -133,6 +139,16 @@ function App() {
          products={products}
          addToCart={addToCart}
          onSelect={(product) => setSelectedProduct(product)} // abrir modal
+       />
+     </main>
+     {/* 🔍 Buscador */}
+     <SearchBar onSearch={handleSearch} />
+
+     <main className="main-content">
+       <ProductList
+         products={products}
+         addToCart={addToCart}
+         onSelect={(product) => setSelectedProduct(product)}
        />
      </main>
      {selectedProduct && (
