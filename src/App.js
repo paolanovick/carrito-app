@@ -106,19 +106,24 @@ function App() {
   }, []);
 
   // 🔥 FUNCIÓN DE BÚSQUEDA CORREGIDA
+  // En tu App.js, reemplaza la función handleSearch actual con esta:
+
   const handleSearch = async (filters) => {
     console.log("Filtros aplicados:", filters);
     setLoading(true);
     setError(null);
 
     try {
-      // 👈 CAMBIO PRINCIPAL: URL del endpoint de búsqueda
+      // Usar el mismo endpoint que funciona, pero con parámetro especial
       const response = await fetch(
-        "http://167.172.31.249:5678/webhook/search",
+        "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(filters),
+          body: JSON.stringify({
+            ...filters,
+            buscar: true, // Parámetro para indicar que es búsqueda
+          }),
         }
       );
 
