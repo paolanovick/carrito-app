@@ -76,25 +76,32 @@ function App() {
     fetchProducts();
   }, []);
 
-  // 🔍 Función de búsqueda con GET
+  // 🔍 Función de búsqueda corregida con POST
   const handleSearch = async (filters) => {
-    console.log("🔍 USANDO FUNCIÓN ACTUALIZADA");
+    console.log("🔍 USANDO FUNCIÓN POST ACTUALIZADA");
     console.log("Filtros aplicados:", filters);
     setLoading(true);
     setError(null);
 
     try {
-      const params = new URLSearchParams({
-        destino: filters.destino || "",
-        fecha: filters.fecha || "",
-        salida: filters.salida || "",
-        viajeros: filters.viajeros || "2 adultos",
-        buscar: "true",
-      });
-
+      // Cambio principal: usar POST con body JSON
       const res = await fetch(
-        `https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api?${params}`,
-        { method: "GET", headers: { Accept: "application/json" } }
+        "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
+        {
+          method: "POST", // ← Cambio de GET a POST
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            destino: filters.destino || "",
+            fecha: filters.fecha || "",
+            salida: filters.salida || "",
+            viajeros: filters.viajeros || "2 adultos",
+            tipo: "paquetes",
+            buscar: true,
+          }),
+        }
       );
 
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
@@ -102,6 +109,7 @@ function App() {
       const data = await res.json();
       console.log("Respuesta de búsqueda:", data);
 
+      // Resto del código igual...
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
