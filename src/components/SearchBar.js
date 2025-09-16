@@ -58,20 +58,7 @@ const SearchBar = ({ onSearch, onReset, resultsCount, totalCount }) => {
         ))}
       </div>
 
-      {/* Indicador de resultados */}
-      {resultsCount !== undefined && totalCount !== undefined && (
-        <div className="results-indicator">
-          {resultsCount === totalCount ? (
-            <span className="results-text">
-              Mostrando todos los {totalCount} paquetes disponibles
-            </span>
-          ) : (
-            <span className="results-text">
-              {resultsCount} de {totalCount} paquetes encontrados
-            </span>
-          )}
-        </div>
-      )}
+      
 
       <form onSubmit={handleSubmit} className="searchbar-form">
         {/* Filtros principales */}
