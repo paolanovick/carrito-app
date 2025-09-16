@@ -76,30 +76,30 @@ function App() {
     fetchProducts();
   }, []);
 
-  // 🔍 Función de búsqueda corregida con POST
+  // 🔍 Función de búsqueda con filtro EN REACT (solución temporal)
   const handleSearch = async (filters) => {
-    console.log("🔍 USANDO FUNCIÓN POST ACTUALIZADA");
+    console.log("🔍 USANDO FILTRO EN REACT (temporal)");
     console.log("Filtros aplicados:", filters);
     setLoading(true);
     setError(null);
 
     try {
-      // Cambio principal: usar POST con body JSON
+      // 1. Obtener TODOS los paquetes sin filtro
       const res = await fetch(
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         {
-          method: "POST", // ← Cambio de GET a POST
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
           body: JSON.stringify({
-            destino: filters.destino || "",
-            fecha: filters.fecha || "",
-            salida: filters.salida || "",
-            viajeros: filters.viajeros || "2 adultos",
+            destino: "", // Enviar vacío para obtener todos
+            fecha: "",
+            salida: "",
+            viajeros: "2 adultos",
             tipo: "paquetes",
-            buscar: true,
+            buscar: false, // No buscar, solo obtener todos
           }),
         }
       );
@@ -107,13 +107,100 @@ function App() {
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
       const data = await res.json();
-      console.log("Respuesta de búsqueda:", data);
+      console.log("Datos recibidos del servidor:", data);
 
-      // Resto del código igual...
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
-      const processedProducts = formatted
+      console.log("🔍 Total de paquetes antes del filtro:", formatted.length);
+
+      // 2. FILTRAR EN REACT
+      let paquetesFiltrados = formatted;
+
+      // Filtro por destino
+      if (filters.destino && filters.destino.trim() !== "") {
+        const destinoBuscado = filters.destino.toLowerCase();
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          // Buscar en destinos
+          const destinos = paquete.destinos?.destino;
+
+          if (!destinos) return false;
+
+          // Si destinos es un array
+          if (Array.isArray(destinos)) {
+            return destinos.some((dest) => {
+              const ciudad = (dest.ciudad || "").toLowerCase();
+              const pais = (dest.pais || "").toLowerCase();
+              return (
+                ciudad.includes(destinoBuscado) || pais.includes(destinoBuscado)
+              );
+            });
+          }
+          // Si destinos es un objeto único
+          else {
+            const ciudad = (destinos.ciudad || "").toLowerCase();
+            const pais = (destinos.pais || "").toLowerCase();
+            return (
+              ciudad.includes(destinoBuscado) || pais.includes(destinoBuscado)
+            );
+          }
+        });
+        console.log(
+          `✅ Filtro destino "${filters.destino}": ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      // Filtro por salida (origen)
+      if (filters.salida && filters.salida.trim() !== "") {
+        const salidaBuscada = filters.salida.toLowerCase();
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const origen = (paquete.origen || "").toLowerCase();
+          return origen.includes(salidaBuscada);
+        });
+        console.log(
+          `✅ Filtro salida "${filters.salida}": ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      // Filtro por fecha
+      if (filters.fecha && filters.fecha.trim() !== "") {
+        const fechaBuscada = filters.fecha;
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const salidas = paquete.salidas?.salida;
+
+          if (!salidas) return false;
+
+          if (Array.isArray(salidas)) {
+            return salidas.some((salida) => {
+              const fechaDesde = salida.fecha_desde || "";
+              const fechaHasta = salida.fecha_hasta || "";
+              return (
+                fechaDesde.includes(fechaBuscada) ||
+                fechaHasta.includes(fechaBuscada)
+              );
+            });
+          } else {
+            const fechaDesde = salidas.fecha_desde || "";
+            const fechaHasta = salidas.fecha_hasta || "";
+            return (
+              fechaDesde.includes(fechaBuscada) ||
+              fechaHasta.includes(fechaBuscada)
+            );
+          }
+        });
+        console.log(
+          `✅ Filtro fecha "${filters.fecha}": ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      console.log(
+        "🎯 RESULTADO FINAL:",
+        paquetesFiltrados.length,
+        "paquetes filtrados"
+      );
+
+      // 3. Procesar y mostrar SOLO los paquetes filtrados
+      const processedProducts = paquetesFiltrados
         .filter((p) => p && p.titulo)
         .map((p, index) => ({
           id: p.paquete_externo_id || `package-${index}`,
