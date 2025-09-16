@@ -8,121 +8,239 @@ body {
   color: #334155;
   min-height: 100vh;
 }
-
 /* ------------------- Logo ------------------- */
 .logo-container {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   transition: all 0.3s ease;
+  padding: 8px;
+  cursor: pointer;
 }
 
 .logo-container:hover {
   animation: glow 1.5s ease-in-out infinite;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 @keyframes glow {
-  0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.3); }
-  50% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
-  100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.3); }
+  0% { box-shadow: 0 0 8px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); }
+  100% { box-shadow: 0 0 8px rgba(59, 130, 246, 0.3); }
 }
 
 .logo-icon {
-  width: 40px;
-  height: 40px;
+  width: 56px;          /* Aumentado de 40px */
+  height: 56px;         /* Aumentado de 40px */
   background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  border-radius: 8px;
+  border-radius: 12px;  /* Más redondeado */
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+.logo-icon:hover {
+  transform: scale(1.05) rotate(2deg);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
 }
 
 .logo-icon img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .logo-icon span {
   color: white;
-  font-size: 1.2rem;
+  font-size: 1.4rem;    /* Aumentado */
   font-weight: bold;
 }
 
 /* ------------------- Navbar ------------------- */
 nav {
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 50%, #ffffff 100%);
-  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 30%, #ffffff 70%, #f1f5f9 100%);
+  padding: 1.5rem 3rem;  /* Más padding */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  position: relative;
-  border-bottom: 2px solid #e2e8f0;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.1);
+   position: -webkit-sticky; /* Safari iOS antiguo */
+  position: sticky;         /* Navegadores modernos */
+  top: 0;     /* Navbar fijo al hacer scroll */
+  
+  z-index: 1000;
+  border-bottom: 3px solid #e2e8f0;
+  backdrop-filter: blur(10px); 
 }
 
 nav h2 {
-  font-size: 1.8rem;
-  font-weight: bold;
+  font-size: 2.2rem;     /* Aumentado de 1.8rem */
+  font-weight: 800;      /* Más bold */
   color: #1e293b;
-  text-shadow: none;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
   margin: 0;
+  letter-spacing: -0.5px;
 }
 
 .logo-accent {
   color: #3b82f6;
-  font-weight: normal;
+  font-weight: 600;
+  text-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 nav ul {
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem;          /* Reducido para mejor espacio */
   list-style: none;
   margin: 0;
   padding: 0;
+  align-items: center;
 }
 
 nav li {
   color: #475569;
   cursor: pointer;
-  padding: 0.7rem 1.2rem;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  font-weight: 500;
-  font-size: 1rem;
+  padding: 0.9rem 1.6rem;  /* Aumentado */
+  border-radius: 12px;     /* Más redondeado */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;        /* Más bold */
+  font-size: 1.05rem;     /* Ligeramente más grande */
   position: relative;
-  border: 1px solid transparent;
+  border: 2px solid transparent;
+  background: rgba(248, 250, 252, 0.7);
+  backdrop-filter: blur(4px);
 }
 
+/* Botones normales (no carrito) */
 nav li:not(.cart-item):hover {
-  background: rgba(59, 130, 246, 0.1);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(29, 78, 216, 0.05));
   border-color: #3b82f6;
-  transform: translateY(-2px);
+  transform: translateY(-3px) scale(1.05);
   color: #1d4ed8;
+  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.2);
+}
+
+nav li:not(.cart-item):active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* Efecto de "página activa" */
+nav li.active {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border-color: #1d4ed8;
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+}
+
+/* Carrito especial */
+.cart-item {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: white !important;
+  border-color: #d97706 !important;
+  position: relative;
+  font-weight: 700;
+}
+
+.cart-item:hover {
+  background: linear-gradient(135deg, #d97706, #b45309) !important;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 16px rgba(245, 158, 11, 0.3);
+}
+
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #dc2626;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+}
+
+.cart-badge.has-items {
+  animation: bounce 0.6s ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 20%, 60%, 100% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-4px) scale(1.1); }
+  80% { transform: translateY(-2px) scale(1.05); }
+}
+
+/* Dropdown del carrito */
+.cart-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+  min-width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1001;
+  backdrop-filter: blur(8px);
+}
+
+/* Animación suave para botones */
+nav li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(29, 78, 216, 0.05));
+  border-radius: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+nav li:hover::before {
+  opacity: 1;
 }
 
 /* Responsive navbar */
 @media (max-width: 768px) {
   nav {
     flex-direction: column;
-    padding: 1rem;
-    gap: 1rem;
+    padding: 1.2rem;
+    gap: 1.2rem;
   }
-  nav ul {
-    gap: 1rem;
+  
+  .logo-icon {
+    width: 48px;
+    height: 48px;
   }
-  nav li {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-  }
+  
   nav h2 {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
+  }
+  
+  nav ul {
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  nav li {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
   }
 }
-
 /* ------------------- Cart Dropdown ------------------- */
 .cart-dropdown {
   position: absolute;
