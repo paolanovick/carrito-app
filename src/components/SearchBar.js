@@ -41,12 +41,13 @@ const SearchBar = ({ onSearch, onReset }) => {
 
       <form onSubmit={handleSubmit} className="searchbar-form">
         <div className="form-group">
-          <label>
+          <label htmlFor="salida">
             <FaMapMarkerAlt /> Ciudad de Salida
           </label>
           <input
             type="text"
             name="salida"
+            id="salida"
             placeholder="Ej: Buenos Aires"
             value={formData.salida}
             onChange={handleChange}
@@ -54,12 +55,13 @@ const SearchBar = ({ onSearch, onReset }) => {
         </div>
 
         <div className="form-group">
-          <label>
+          <label htmlFor="destino">
             <FaMapMarkerAlt /> Ciudad de Destino
           </label>
           <input
             type="text"
             name="destino"
+            id="destino"
             placeholder="Ej: Madrid"
             value={formData.destino}
             onChange={handleChange}
@@ -67,24 +69,26 @@ const SearchBar = ({ onSearch, onReset }) => {
         </div>
 
         <div className="form-group">
-          <label>
+          <label htmlFor="fecha">
             <FaCalendarAlt /> Fecha de Salida
           </label>
           <input
             type="date"
             name="fecha"
+            id="fecha"
             value={formData.fecha}
             onChange={handleChange}
           />
         </div>
 
         <div className="form-group">
-          <label>
+          <label htmlFor="viajeros">
             <FaUsers /> Viajeros
           </label>
           <input
             type="text"
             name="viajeros"
+            id="viajeros"
             placeholder="Ej: 2 adultos"
             value={formData.viajeros}
             onChange={handleChange}
