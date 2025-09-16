@@ -111,7 +111,7 @@ const Footer = () => {
       <div className="footer-container">
         <div className="footer-header">
           {/* Logo desde public */}
-          <img src="/logo.png" alt="Logo" className="footer-logo" />
+          <img src="./logo.png" alt="Logo" className="footer-logo" />
 
           <div className="footer-top">
             <div className="footer-column">
