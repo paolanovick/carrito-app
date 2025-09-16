@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaInstagram, FaLinkedin, FaGlobe } from "react-icons/fa";
-import Logo from "../logo.png";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
@@ -64,7 +63,7 @@ const Footer = () => {
         try {
           const errJson = await response.json();
           errorText = errJson.message || JSON.stringify(errJson);
-        } catch (err) {}
+        } catch {}
         setMessageType("error");
         setMessage(`Error al suscribirse: ${errorText}`);
         clearMessageLater();
@@ -111,7 +110,9 @@ const Footer = () => {
     <div className="footer">
       <div className="footer-container">
         <div className="footer-header">
-          <img src={Logo} alt="Logo" className="footer-logo" />
+          {/* Logo desde public */}
+          <img src="/logo.png" alt="Logo" className="footer-logo" />
+
           <div className="footer-top">
             <div className="footer-column">
               <h3>Secciones</h3>
@@ -121,6 +122,7 @@ const Footer = () => {
               <a href="#planes">Planes</a>
               <a href="#contacto">Contacto</a>
             </div>
+
             <div className="footer-column">
               <h3>Contáctenos</h3>
               <a href="#contacto">Contacto Comercial</a>

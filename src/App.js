@@ -1,220 +1,362 @@
-import React, { useState, useRef, useEffect } from "react";
-import { FaInstagram, FaLinkedin, FaGlobe } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
+import Navbar from "./components/Navbar";
+import CarouselList from "./components/CarouselList";
+import ProductList from "./components/ProductList";
+import Footer from "./components/Footer";
+import Modal from "./components/Modal";
+import SearchBar from "./components/SearchBar";
 
-const Footer = () => {
-  const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("success");
+function App() {
+  const [cart, setCart] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
 
-  const timeoutRef = useRef(null);
-  const abortRef = useRef(null);
-
-  const WEBHOOK_URL = "/api/footer-newsletter";
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (abortRef.current) abortRef.current.abort();
-    };
-  }, []);
-
-  const clearMessageLater = (ms = 5000) => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => setMessage(""), ms);
-  };
-
-  const handleNewsletterSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!email || !emailRegex.test(email)) {
-      setMessageType("error");
-      setMessage("Por favor ingresa un email válido");
-      clearMessageLater(3000);
-      return;
-    }
-
-    setIsLoading(true);
-    setMessage("");
-    setMessageType("success");
-
-    const controller = new AbortController();
-    abortRef.current = controller;
-    const abortTimer = setTimeout(() => controller.abort(), 10000);
+  // Cargar productos al inicio
+  const fetchProducts = async () => {
+    setLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          timestamp: new Date().toISOString(),
-          source: "footer_newsletter",
-          page: window.location.pathname,
-        }),
-        signal: controller.signal,
+      const res = await fetch(
+        "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
+        { method: "GET" }
+      );
+      const data = await res.json();
+      console.log("Datos recibidos:", data);
+
+      const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
+      const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
+
+      const processedProducts = formatted
+        .filter((p) => p && p.titulo)
+        .map((p, index) => ({
+          id: p.paquete_externo_id || `package-${index}`,
+          titulo: p.titulo?.replace(/<[^>]*>/g, "").trim() || "Sin título",
+          imagen_principal:
+            p.imagen_principal || "https://via.placeholder.com/200",
+          url: p.url?.trim() || "#",
+          cant_noches: parseInt(p.cant_noches) || 0,
+          doble_precio: parseFloat(p.doble_precio || p.precio || 0),
+          destinoCiudad:
+            p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
+          destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
+          rawData: p,
+        }));
+
+      setProducts(processedProducts);
+      setResultsInfo({
+        results: processedProducts.length,
+        total: processedProducts.length,
       });
 
-      clearTimeout(abortTimer);
+      const processedImages = formatted
+        .filter((p) => p && p.imagen_principal)
+        .slice(0, 7)
+        .map((p, index) => ({
+          id: p.paquete_externo_id || `image-${index}`,
+          url: p.imagen_principal,
+          titulo:
+            p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
+          descripcion: "",
+          alt:
+            p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
+        }));
 
-      if (!response.ok) {
-        let errorText = `Error HTTP ${response.status}`;
-        try {
-          const errJson = await response.json();
-          errorText = errJson.message || JSON.stringify(errJson);
-        } catch {}
-        setMessageType("error");
-        setMessage(`Error al suscribirse: ${errorText}`);
-        clearMessageLater();
-        return;
-      }
-
-      let data = null;
-      try {
-        data = await response.json();
-      } catch {
-        data = null;
-      }
-
-      const successMsg =
-        (data &&
-          (data.message ||
-            (data.success && "¡Gracias! Te has suscrito correctamente."))) ||
-        "¡Gracias! Te has suscrito correctamente.";
-
-      setMessageType("success");
-      setMessage(successMsg);
-      setEmail("");
-      clearMessageLater(5000);
-    } catch (error) {
-      if (error.name === "AbortError") {
-        setMessageType("error");
-        setMessage("La solicitud tardó demasiado. Intenta nuevamente.");
-      } else {
-        console.error("Newsletter error:", error);
-        setMessageType("error");
-        setMessage(
-          "Hubo un problema al enviar tu suscripción. Intenta nuevamente."
-        );
-      }
-      clearMessageLater();
+      setImages(processedImages);
+    } catch (err) {
+      console.error("Error cargando productos:", err);
+      setError(`Error al cargar productos: ${err.message}`);
+      setProducts([]);
+      setImages([]);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const isEmailValid = emailRegex.test(email);
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  // 🔍 Función de búsqueda mejorada con todos los filtros
+  const handleSearch = async (filters) => {
+    console.log("🔍 USANDO FILTRO COMPLETO EN REACT");
+    console.log("Filtros aplicados:", filters);
+    setLoading(true);
+    setError(null);
+
+    try {
+      // 1. Obtener TODOS los paquetes sin filtro
+      const res = await fetch(
+        "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            destino: "",
+            fecha: "",
+            salida: "",
+            viajeros: "2 adultos",
+            tipo: "paquetes",
+            buscar: false,
+          }),
+        }
+      );
+
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+
+      const data = await res.json();
+      const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
+      const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
+      const totalCount = formatted.length;
+
+      console.log("🔍 Total de paquetes antes del filtro:", totalCount);
+
+      // 2. APLICAR TODOS LOS FILTROS
+      let paquetesFiltrados = formatted;
+
+      // Filtro por destino
+      if (filters.destino && filters.destino.trim() !== "") {
+        const destinoBuscado = filters.destino.toLowerCase();
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const destinos = paquete.destinos?.destino;
+          if (!destinos) return false;
+
+          if (Array.isArray(destinos)) {
+            return destinos.some((dest) => {
+              const ciudad = (dest.ciudad || "").toLowerCase();
+              const pais = (dest.pais || "").toLowerCase();
+              return (
+                ciudad.includes(destinoBuscado) || pais.includes(destinoBuscado)
+              );
+            });
+          } else {
+            const ciudad = (destinos.ciudad || "").toLowerCase();
+            const pais = (destinos.pais || "").toLowerCase();
+            return (
+              ciudad.includes(destinoBuscado) || pais.includes(destinoBuscado)
+            );
+          }
+        });
+        console.log(
+          `✅ Filtro destino "${filters.destino}": ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      // Filtro por salida (origen)
+      if (filters.salida && filters.salida.trim() !== "") {
+        const salidaBuscada = filters.salida.toLowerCase();
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const origen = (paquete.origen || "").toLowerCase();
+          return origen.includes(salidaBuscada);
+        });
+        console.log(
+          `✅ Filtro salida "${filters.salida}": ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      // Filtro por fecha
+      if (filters.fecha && filters.fecha.trim() !== "") {
+        const fechaBuscada = filters.fecha;
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const salidas = paquete.salidas?.salida;
+          if (!salidas) return false;
+
+          if (Array.isArray(salidas)) {
+            return salidas.some((salida) => {
+              const fechaDesde = salida.fecha_desde || "";
+              const fechaHasta = salida.fecha_hasta || "";
+              return (
+                fechaDesde.includes(fechaBuscada) ||
+                fechaHasta.includes(fechaBuscada)
+              );
+            });
+          } else {
+            const fechaDesde = salidas.fecha_desde || "";
+            const fechaHasta = salidas.fecha_hasta || "";
+            return (
+              fechaDesde.includes(fechaBuscada) ||
+              fechaHasta.includes(fechaBuscada)
+            );
+          }
+        });
+        console.log(
+          `✅ Filtro fecha "${filters.fecha}": ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      // 🆕 Filtro por precio mínimo
+      if (filters.precioMin && filters.precioMin.trim() !== "") {
+        const precioMin = parseFloat(filters.precioMin);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const precio = parseFloat(paquete.doble_precio || 0);
+          return precio >= precioMin;
+        });
+        console.log(
+          `✅ Filtro precio mínimo ${precioMin}: ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      // 🆕 Filtro por precio máximo
+      if (filters.precioMax && filters.precioMax.trim() !== "") {
+        const precioMax = parseFloat(filters.precioMax);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const precio = parseFloat(paquete.doble_precio || 0);
+          return precio <= precioMax;
+        });
+        console.log(
+          `✅ Filtro precio máximo ${precioMax}: ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      // 🆕 Filtro por duración mínima (noches)
+      if (filters.duracionMin && filters.duracionMin.trim() !== "") {
+        const duracionMin = parseInt(filters.duracionMin);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const noches = parseInt(paquete.cant_noches || 0);
+          return noches >= duracionMin;
+        });
+        console.log(
+          `✅ Filtro duración mínima ${duracionMin} noches: ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      // 🆕 Filtro por duración máxima (noches)
+      if (filters.duracionMax && filters.duracionMax.trim() !== "") {
+        const duracionMax = parseInt(filters.duracionMax);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const noches = parseInt(paquete.cant_noches || 0);
+          return noches <= duracionMax;
+        });
+        console.log(
+          `✅ Filtro duración máxima ${duracionMax} noches: ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      const resultsCount = paquetesFiltrados.length;
+      console.log(
+        "🎯 RESULTADO FINAL:",
+        resultsCount,
+        "de",
+        totalCount,
+        "paquetes"
+      );
+
+      // 3. Actualizar información de resultados
+      setResultsInfo({ results: resultsCount, total: totalCount });
+
+      // 4. Procesar productos filtrados
+      const processedProducts = paquetesFiltrados
+        .filter((p) => p && p.titulo)
+        .map((p, index) => ({
+          id: p.paquete_externo_id || `package-${index}`,
+          titulo: p.titulo?.replace(/<[^>]*>/g, "").trim() || "Sin título",
+          imagen_principal:
+            p.imagen_principal || "https://via.placeholder.com/200",
+          url: p.url?.trim() || "#",
+          cant_noches: parseInt(p.cant_noches) || 0,
+          doble_precio: parseFloat(p.doble_precio || p.precio || 0),
+          destinoCiudad:
+            p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
+          destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
+          rawData: p,
+        }));
+
+      setProducts(processedProducts);
+
+      // 5. Mensajes mejorados cuando no hay resultados
+      if (processedProducts.length === 0) {
+        const activeFilters = Object.entries(filters)
+          .filter(
+            ([key, value]) => value && value.trim() !== "" && key !== "tipo"
+          )
+          .map(([key, value]) => {
+            const filterNames = {
+              destino: "Destino",
+              salida: "Salida",
+              fecha: "Fecha",
+              precioMin: "Precio mínimo",
+              precioMax: "Precio máximo",
+              duracionMin: "Duración mínima",
+              duracionMax: "Duración máxima",
+            };
+            return `${filterNames[key] || key}: ${value}`;
+          });
+
+        if (activeFilters.length > 0) {
+          setError(
+            `No se encontraron paquetes que coincidan con los filtros aplicados:\n\n${activeFilters.join(
+              "\n"
+            )}\n\nIntenta ajustar o eliminar algunos filtros para ver más resultados.`
+          );
+        } else {
+          setError("No se encontraron paquetes disponibles en este momento.");
+        }
+      }
+    } catch (err) {
+      console.error("Error al buscar paquetes:", err);
+      setError(`No se pudo realizar la búsqueda: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔄 Función reset para mostrar todos los paquetes
+  const handleReset = async () => {
+    await fetchProducts();
+  };
+
+  const addToCart = (product) => setCart((prev) => [...prev, product]);
+  const removeFromCart = (id) =>
+    setCart((prev) => prev.filter((item) => item.id !== id));
+
+  if (loading)
+    return (
+      <div className="loading-container">
+        <p>Cargando productos...</p>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="error-container">
+        <p style={{ whiteSpace: "pre-line" }}>{error}</p>
+        <button onClick={() => window.location.reload()}>Reintentar</button>
+      </div>
+    );
 
   return (
-    <div className="footer">
-      <div className="footer-container">
-        <div className="footer-header">
-          {/* Logo desde public */}
-          <img src="/logo.png" alt="Logo" className="footer-logo" />
-
-          <div className="footer-top">
-            <div className="footer-column">
-              <h3>Secciones</h3>
-              <a href="#inicio">Inicio</a>
-              <a href="#nosotros">Nosotros</a>
-              <a href="#productos">Productos</a>
-              <a href="#planes">Planes</a>
-              <a href="#contacto">Contacto</a>
-            </div>
-
-            <div className="footer-column">
-              <h3>Contáctenos</h3>
-              <a href="#contacto">Contacto Comercial</a>
-              <a href="/privacidad" target="_blank" rel="noopener noreferrer">
-                Política de Privacidad
-              </a>
-              <a href="/legales" target="_blank" rel="noopener noreferrer">
-                Legales
-              </a>
-              <a href="/terminos" target="_blank" rel="noopener noreferrer">
-                Términos &amp; Condiciones
-              </a>
-            </div>
-
-            <div className="footer-newsletter">
-              <h3>Suscribite a nuestro Newsletter</h3>
-              <form onSubmit={handleNewsletterSubmit}>
-                <div className="newsletter-input">
-                  <input
-                    type="email"
-                    placeholder="Ingresa tu email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
-                    required
-                  />
-                  <button
-                    type="submit"
-                    disabled={isLoading || !isEmailValid}
-                    style={{
-                      opacity: isLoading ? 0.6 : 1,
-                      cursor: isLoading ? "not-allowed" : "pointer",
-                    }}
-                  >
-                    {isLoading ? "Enviando..." : "Suscribirse"}
-                  </button>
-                </div>
-
-                {message && (
-                  <div
-                    className={`newsletter-message ${
-                      messageType === "success" ? "success" : "error"
-                    }`}
-                    role="status"
-                  >
-                    {message}
-                  </div>
-                )}
-              </form>
-            </div>
-          </div>
-        </div>
-
-        <div className="footer-socials">
-          <button
-            aria-label="Instagram"
-            onClick={() =>
-              window.open(
-                "https://www.instagram.com/travelconnectar/",
-                "_blank"
-              )
-            }
-          >
-            <FaInstagram />
-          </button>
-          <button
-            aria-label="LinkedIn"
-            onClick={() =>
-              window.open(
-                "https://www.linkedin.com/company/travelconnectarg/posts/?feedView=all",
-                "_blank"
-              )
-            }
-          >
-            <FaLinkedin />
-          </button>
-          <button
-            aria-label="Sitio web"
-            onClick={() =>
-              window.open("https://www.travelconnect.com.ar", "_blank")
-            }
-          >
-            <FaGlobe />
-          </button>
-        </div>
-
-        <div className="footer-bottom">
-          © 2025 Travel Connect. Todos los derechos reservados.
-        </div>
-      </div>
-    </div>
+    <>
+      <Navbar cart={cart} removeFromCart={removeFromCart} />
+      <CarouselList images={images} />
+      <SearchBar
+        onSearch={handleSearch}
+        onReset={handleReset}
+        resultsCount={resultsInfo.results}
+        totalCount={resultsInfo.total}
+      />
+      <main className="main-content">
+        <ProductList
+          products={products}
+          addToCart={addToCart}
+          onSelect={(product) => setSelectedProduct(product)}
+        />
+      </main>
+      {selectedProduct && (
+        <Modal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+        />
+      )}
+      <Footer />
+    </>
   );
-};
+}
 
-export default Footer;
+export default App;
