@@ -73,6 +73,7 @@ nav {
   
   z-index: 1000;
   border-bottom: 3px solid #e2e8f0;
+   -webkit-backdrop-filter: blur(10px); /* Safari antiguo */
   backdrop-filter: blur(10px); 
 }
 
@@ -111,7 +112,8 @@ nav li {
   position: relative;
   border: 2px solid transparent;
   background: rgba(248, 250, 252, 0.7);
-  backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 /* Botones normales (no carrito) */
@@ -191,6 +193,7 @@ nav li.active {
   max-height: 400px;
   overflow-y: auto;
   z-index: 1001;
+  -webkit-backdrop-filter: blur(8px); /* Safari antiguo */
   backdrop-filter: blur(8px);
 }
 
