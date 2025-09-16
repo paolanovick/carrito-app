@@ -1,13 +1,23 @@
 import { useState } from "react";
-import { FaMapMarkerAlt, FaCalendarAlt, FaUsers } from "react-icons/fa";
+import {
+  FaMapMarkerAlt,
+  FaCalendarAlt,
+  FaUsers,
+  FaDollarSign,
+  FaClock,
+} from "react-icons/fa";
 
-const SearchBar = ({ onSearch, onReset }) => {
+const SearchBar = ({ onSearch, onReset, resultsCount, totalCount }) => {
   const [activeTab, setActiveTab] = useState("paquetes");
   const [formData, setFormData] = useState({
     salida: "",
     destino: "",
     fecha: "",
     viajeros: "2 adultos",
+    precioMin: "",
+    precioMax: "",
+    duracionMin: "",
+    duracionMax: "",
   });
 
   const handleChange = (e) =>
@@ -19,7 +29,16 @@ const SearchBar = ({ onSearch, onReset }) => {
   };
 
   const handleResetLocal = () => {
-    setFormData({ salida: "", destino: "", fecha: "", viajeros: "2 adultos" });
+    setFormData({
+      salida: "",
+      destino: "",
+      fecha: "",
+      viajeros: "2 adultos",
+      precioMin: "",
+      precioMax: "",
+      duracionMin: "",
+      duracionMax: "",
+    });
     if (onReset) onReset();
   };
 
@@ -39,7 +58,23 @@ const SearchBar = ({ onSearch, onReset }) => {
         ))}
       </div>
 
+      {/* Indicador de resultados */}
+      {resultsCount !== undefined && totalCount !== undefined && (
+        <div className="results-indicator">
+          {resultsCount === totalCount ? (
+            <span className="results-text">
+              Mostrando todos los {totalCount} paquetes disponibles
+            </span>
+          ) : (
+            <span className="results-text">
+              {resultsCount} de {totalCount} paquetes encontrados
+            </span>
+          )}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="searchbar-form">
+        {/* Filtros principales */}
         <div className="form-group">
           <label htmlFor="salida">
             <FaMapMarkerAlt /> Ciudad de Salida
@@ -95,16 +130,79 @@ const SearchBar = ({ onSearch, onReset }) => {
           />
         </div>
 
+        {/* Filtros de precio */}
+        <div className="form-group">
+          <label htmlFor="precioMin">
+            <FaDollarSign /> Precio Mínimo
+          </label>
+          <input
+            type="number"
+            name="precioMin"
+            id="precioMin"
+            placeholder="$ 0"
+            min="0"
+            value={formData.precioMin}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="precioMax">
+            <FaDollarSign /> Precio Máximo
+          </label>
+          <input
+            type="number"
+            name="precioMax"
+            id="precioMax"
+            placeholder="$ 999999"
+            min="0"
+            value={formData.precioMax}
+            onChange={handleChange}
+          />
+        </div>
+
+        {/* Filtros de duración */}
+        <div className="form-group">
+          <label htmlFor="duracionMin">
+            <FaClock /> Mín. Noches
+          </label>
+          <input
+            type="number"
+            name="duracionMin"
+            id="duracionMin"
+            placeholder="1"
+            min="1"
+            value={formData.duracionMin}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="duracionMax">
+            <FaClock /> Máx. Noches
+          </label>
+          <input
+            type="number"
+            name="duracionMax"
+            id="duracionMax"
+            placeholder="30"
+            min="1"
+            value={formData.duracionMax}
+            onChange={handleChange}
+          />
+        </div>
+
+        {/* Botones mejorados */}
         <div className="button-group">
           <button type="submit" className="btn-buscar">
-            BUSCAR
+            BUSCAR PAQUETES
           </button>
           <button
             type="button"
             onClick={handleResetLocal}
             className="btn-reset"
           >
-            VER TODOS
+            LIMPIAR FILTROS
           </button>
         </div>
       </form>

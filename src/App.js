@@ -13,6 +13,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
 
   // Cargar productos al inicio
   const fetchProducts = async () => {
@@ -47,6 +48,10 @@ function App() {
         }));
 
       setProducts(processedProducts);
+      setResultsInfo({
+        results: processedProducts.length,
+        total: processedProducts.length,
+      });
 
       const processedImages = formatted
         .filter((p) => p && p.imagen_principal)
@@ -76,9 +81,9 @@ function App() {
     fetchProducts();
   }, []);
 
-  // 🔍 Función de búsqueda con filtro EN REACT (solución temporal)
+  // 🔍 Función de búsqueda mejorada con todos los filtros
   const handleSearch = async (filters) => {
-    console.log("🔍 USANDO FILTRO EN REACT (temporal)");
+    console.log("🔍 USANDO FILTRO COMPLETO EN REACT");
     console.log("Filtros aplicados:", filters);
     setLoading(true);
     setError(null);
@@ -94,12 +99,12 @@ function App() {
             Accept: "application/json",
           },
           body: JSON.stringify({
-            destino: "", // Enviar vacío para obtener todos
+            destino: "",
             fecha: "",
             salida: "",
             viajeros: "2 adultos",
             tipo: "paquetes",
-            buscar: false, // No buscar, solo obtener todos
+            buscar: false,
           }),
         }
       );
@@ -107,26 +112,22 @@ function App() {
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
       const data = await res.json();
-      console.log("Datos recibidos del servidor:", data);
-
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
+      const totalCount = formatted.length;
 
-      console.log("🔍 Total de paquetes antes del filtro:", formatted.length);
+      console.log("🔍 Total de paquetes antes del filtro:", totalCount);
 
-      // 2. FILTRAR EN REACT
+      // 2. APLICAR TODOS LOS FILTROS
       let paquetesFiltrados = formatted;
 
       // Filtro por destino
       if (filters.destino && filters.destino.trim() !== "") {
         const destinoBuscado = filters.destino.toLowerCase();
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          // Buscar en destinos
           const destinos = paquete.destinos?.destino;
-
           if (!destinos) return false;
 
-          // Si destinos es un array
           if (Array.isArray(destinos)) {
             return destinos.some((dest) => {
               const ciudad = (dest.ciudad || "").toLowerCase();
@@ -135,9 +136,7 @@ function App() {
                 ciudad.includes(destinoBuscado) || pais.includes(destinoBuscado)
               );
             });
-          }
-          // Si destinos es un objeto único
-          else {
+          } else {
             const ciudad = (destinos.ciudad || "").toLowerCase();
             const pais = (destinos.pais || "").toLowerCase();
             return (
@@ -167,7 +166,6 @@ function App() {
         const fechaBuscada = filters.fecha;
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
           const salidas = paquete.salidas?.salida;
-
           if (!salidas) return false;
 
           if (Array.isArray(salidas)) {
@@ -193,13 +191,67 @@ function App() {
         );
       }
 
+      // 🆕 Filtro por precio mínimo
+      if (filters.precioMin && filters.precioMin.trim() !== "") {
+        const precioMin = parseFloat(filters.precioMin);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const precio = parseFloat(paquete.doble_precio || 0);
+          return precio >= precioMin;
+        });
+        console.log(
+          `✅ Filtro precio mínimo ${precioMin}: ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      // 🆕 Filtro por precio máximo
+      if (filters.precioMax && filters.precioMax.trim() !== "") {
+        const precioMax = parseFloat(filters.precioMax);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const precio = parseFloat(paquete.doble_precio || 0);
+          return precio <= precioMax;
+        });
+        console.log(
+          `✅ Filtro precio máximo ${precioMax}: ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      // 🆕 Filtro por duración mínima (noches)
+      if (filters.duracionMin && filters.duracionMin.trim() !== "") {
+        const duracionMin = parseInt(filters.duracionMin);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const noches = parseInt(paquete.cant_noches || 0);
+          return noches >= duracionMin;
+        });
+        console.log(
+          `✅ Filtro duración mínima ${duracionMin} noches: ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      // 🆕 Filtro por duración máxima (noches)
+      if (filters.duracionMax && filters.duracionMax.trim() !== "") {
+        const duracionMax = parseInt(filters.duracionMax);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const noches = parseInt(paquete.cant_noches || 0);
+          return noches <= duracionMax;
+        });
+        console.log(
+          `✅ Filtro duración máxima ${duracionMax} noches: ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      const resultsCount = paquetesFiltrados.length;
       console.log(
         "🎯 RESULTADO FINAL:",
-        paquetesFiltrados.length,
-        "paquetes filtrados"
+        resultsCount,
+        "de",
+        totalCount,
+        "paquetes"
       );
 
-      // 3. Procesar y mostrar SOLO los paquetes filtrados
+      // 3. Actualizar información de resultados
+      setResultsInfo({ results: resultsCount, total: totalCount });
+
+      // 4. Procesar productos filtrados
       const processedProducts = paquetesFiltrados
         .filter((p) => p && p.titulo)
         .map((p, index) => ({
@@ -218,8 +270,35 @@ function App() {
 
       setProducts(processedProducts);
 
-      if (processedProducts.length === 0)
-        setError("No se encontraron paquetes con los filtros seleccionados.");
+      // 5. Mensajes mejorados cuando no hay resultados
+      if (processedProducts.length === 0) {
+        const activeFilters = Object.entries(filters)
+          .filter(
+            ([key, value]) => value && value.trim() !== "" && key !== "tipo"
+          )
+          .map(([key, value]) => {
+            const filterNames = {
+              destino: "Destino",
+              salida: "Salida",
+              fecha: "Fecha",
+              precioMin: "Precio mínimo",
+              precioMax: "Precio máximo",
+              duracionMin: "Duración mínima",
+              duracionMax: "Duración máxima",
+            };
+            return `${filterNames[key] || key}: ${value}`;
+          });
+
+        if (activeFilters.length > 0) {
+          setError(
+            `No se encontraron paquetes que coincidan con los filtros aplicados:\n\n${activeFilters.join(
+              "\n"
+            )}\n\nIntenta ajustar o eliminar algunos filtros para ver más resultados.`
+          );
+        } else {
+          setError("No se encontraron paquetes disponibles en este momento.");
+        }
+      }
     } catch (err) {
       console.error("Error al buscar paquetes:", err);
       setError(`No se pudo realizar la búsqueda: ${err.message}`);
@@ -256,7 +335,12 @@ function App() {
     <>
       <Navbar cart={cart} removeFromCart={removeFromCart} />
       <CarouselList images={images} />
-      <SearchBar onSearch={handleSearch} onReset={handleReset} />
+      <SearchBar
+        onSearch={handleSearch}
+        onReset={handleReset}
+        resultsCount={resultsInfo.results}
+        totalCount={resultsInfo.total}
+      />
       <main className="main-content">
         <ProductList
           products={products}
