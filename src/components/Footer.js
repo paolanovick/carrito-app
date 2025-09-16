@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaInstagram, FaLinkedin, FaGlobe } from "react-icons/fa";
-import Logo from "../Assets/Logo.png";
+import Logo from "/public/logo.png";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
