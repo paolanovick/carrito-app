@@ -10,7 +10,9 @@ const Footer = () => {
   const timeoutRef = useRef(null);
   const abortRef = useRef(null);
 
-  const WEBHOOK_URL = "/api/footer-newsletter";
+  const WEBHOOK_URL =
+    "http://167.172.31.249:5678/webhook/footer-newsletter";
+// tu webhook de n8n
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   useEffect(() => {
@@ -70,12 +72,7 @@ const Footer = () => {
         return;
       }
 
-      let data = null;
-      try {
-        data = await response.json();
-      } catch {
-        data = null;
-      }
+      const data = await response.json().catch(() => null);
 
       const successMsg =
         (data &&
@@ -110,8 +107,7 @@ const Footer = () => {
     <div className="footer">
       <div className="footer-container">
         <div className="footer-header">
-          {/* Logo desde public */}
-          <img src="./logo.png" alt="Logo" className="footer-logo" />
+          <img src="/logo.png" alt="Logo" className="footer-logo" />
 
           <div className="footer-top">
             <div className="footer-column">
@@ -161,9 +157,7 @@ const Footer = () => {
 
                 {message && (
                   <div
-                    className={`newsletter-message ${
-                      messageType === "success" ? "success" : "error"
-                    }`}
+                    className={`newsletter-message ${messageType}`}
                     role="status"
                   >
                     {message}
