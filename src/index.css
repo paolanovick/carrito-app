@@ -857,9 +857,9 @@ form button:hover {
   min-width: 150px;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Centra todo horizontalmente */
-  width: 100%;
+  align-items: center; /* Centrado horizontal */
   text-align: center;
+  width: 100%;
 }
 
 .footer-newsletter h3 {
@@ -870,22 +870,20 @@ form button:hover {
 
 .newsletter-input {
   display: flex;
-  flex-direction: row; /* Input y botón uno al lado del otro en desktop */
+  flex-direction: row; /* Desktop: input y botón lado a lado */
   gap: 10px;
   width: 100%;
-  max-width: 400px; /* Limita el ancho para que no se estire demasiado */
-  justify-content: center; /* Centra los elementos dentro del contenedor */
+  max-width: 400px; /* Limita ancho total */
 }
 
 .newsletter-input input {
   flex: 2;
-  padding: 10px 12px;
-  border-radius: 4px;
-  border: none;
-  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.6);
+  background-color: rgba(255,255,255,0.2); /* Fondo semitransparente */
+  color: #fff; /* Texto blanco */
   font-size: 1rem;
-  background-color: rgba(255,255,255,0.15); /* Fondo semitransparente para que combine con el footer */
-  color: #fff;
   outline: none;
 }
 
@@ -895,23 +893,23 @@ form button:hover {
 
 .newsletter-input button {
   flex: 1;
-  padding: 10px 12px;
-  background-color: rgba(255,255,255,0.25); /* Botón semitransparente */
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.6);
+  background-color: rgba(255,255,255,0.25); /* Fondo semitransparente */
   color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
   font-weight: 600;
+  cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .newsletter-input button:hover {
-  background-color: rgba(255,255,255,0.45);
+  background-color: rgba(255,255,255,0.4);
 }
 
 @media(max-width: 500px){
   .newsletter-input {
-    flex-direction: column; /* En móviles, botón debajo del input */
+    flex-direction: column; /* Móvil: botón debajo del input */
   }
   .newsletter-input button {
     width: 100%;
