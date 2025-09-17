@@ -117,9 +117,7 @@ const Footer = () => {
             <div className="footer-column">
               <h3>Secciones</h3>
               <a href="#inicio">Inicio</a>
-              <a href="#nosotros">Nosotros</a>
-              <a href="#productos">Productos</a>
-              <a href="#planes">Planes</a>
+              <a href="#nosotros">Paquetes</a>
               <a href="#contacto">Contacto</a>
             </div>
 
