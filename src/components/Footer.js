@@ -201,7 +201,7 @@ const Footer = () => {
           </button>
         </div>
 
-        <div className="footer-bottom">
+        <div className="footer-bottom1">
           © 2025 Travel Connect. Todos los derechos reservados.
         </div>
       </div>
