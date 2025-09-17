@@ -610,20 +610,7 @@ form button:hover {
   box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 }
 
-/* ------------------- Footer ------------------- */
-footer {
-  text-align: center;
-  padding: 30px 20px;
-  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-  color: #475569;
-  margin-top: 50px;
-  border-top: 3px solid #3b82f6;
-}
 
-footer p {
-  margin: 0;
-  font-size: 1rem;
-}
 /* SearchBar Container */
 .searchbar-wrapper {
   background: linear-gradient(135deg, #ffffff, #f8fafc);
