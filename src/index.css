@@ -603,20 +603,13 @@ form button {
   font-weight: 500;
   transition: all 0.3s ease;
 }
-form button1 {
-  width: 100%;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #8c8d8e, #8d8d8f);
-  color: rgb(10, 10, 10);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
+
+
+form button:hover {
+  background: linear-gradient(135deg, #8c8d8e, #8c8d8e);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 }
-
-
 
 
 /* SearchBar Container */
@@ -872,7 +865,7 @@ form button1 {
 
 .footer-newsletter h3 {
   margin-bottom: 15px;
-  color: #fff;
+  color: #434242;
   font-size: 1.3rem;
 }
 
@@ -1026,7 +1019,7 @@ form button1 {
 .footer-newsletter .newsletter-input button:disabled {
   background-color: #ccc !important;
   cursor: not-allowed !important;
-  color: #666 !important;
+  color: #0b0a0a !important;
 }
 
 .footer-newsletter .newsletter-input input:disabled {
