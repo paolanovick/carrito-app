@@ -351,9 +351,7 @@ function App() {
 
       {/* Paquetes */}
       <main id="paquetes" className="main-content">
-        <h2 style={{ textAlign: "center", margin: "40px 0 20px" }}>
-          Nuestros Recomendados
-        </h2>
+       
 
         <ProductList
           products={showAll ? products : products.slice(0, 10)}
