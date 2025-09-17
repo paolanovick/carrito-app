@@ -880,9 +880,9 @@ form button:hover {
   flex: 2;
   padding: 12px 14px;
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.6);
+  border: 1px solid rgba(48, 45, 45, 0.6);
   background-color: rgba(255,255,255,0.2); /* Fondo semitransparente */
-  color: #fff; /* Texto blanco */
+  color: #1c1b1b; /* Texto blanco */
   font-size: 1rem;
   outline: none;
 }
@@ -895,7 +895,7 @@ form button:hover {
   flex: 1;
   padding: 12px 14px;
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.6);
+  border: 1px solid rgba(40, 39, 39, 0.6);
   background-color: rgba(255,255,255,0.25); /* Fondo semitransparente */
   color: #fff;
   font-weight: 600;
