@@ -5,37 +5,15 @@ import ProductList from "./components/ProductList";
 import Footer from "./components/Footer";
 import Modal from "./components/Modal";
 import SearchBar from "./components/SearchBar";
-import Formulario from "./components/Formulario";
-// import InicioComponent from "./components/InicioComponent"; // Descomentarás cuando lo tengas
 
 function App() {
-  // Estados existentes
   const [cart, setCart] = useState([]);
+  const [products, setProducts] = useState([]);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
-
-  // 🆕 Estados para navegación
-  const [activeSection, setActiveSection] = useState("inicio");
-
-  // 🆕 Estados para paginación
-  const [allProducts, setAllProducts] = useState([]);
-  const [displayedProducts, setDisplayedProducts] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const PRODUCTS_PER_PAGE = 10;
-
-  // 🆕 Función para cargar más productos
-  const loadMoreProducts = () => {
-    const nextPage = currentPage + 1;
-    const startIndex = 0;
-    const endIndex = nextPage * PRODUCTS_PER_PAGE;
-
-    const newDisplayedProducts = allProducts.slice(startIndex, endIndex);
-    setDisplayedProducts(newDisplayedProducts);
-    setCurrentPage(nextPage);
-  };
 
   // Cargar productos al inicio
   const fetchProducts = async () => {
@@ -69,12 +47,7 @@ function App() {
           rawData: p,
         }));
 
-      // 🆕 Configurar paginación
-      setAllProducts(processedProducts);
-      const initialProducts = processedProducts.slice(0, PRODUCTS_PER_PAGE);
-      setDisplayedProducts(initialProducts);
-      setCurrentPage(1);
-
+      setProducts(processedProducts);
       setResultsInfo({
         results: processedProducts.length,
         total: processedProducts.length,
@@ -97,8 +70,7 @@ function App() {
     } catch (err) {
       console.error("Error cargando productos:", err);
       setError(`Error al cargar productos: ${err.message}`);
-      setAllProducts([]);
-      setDisplayedProducts([]);
+      setProducts([]);
       setImages([]);
     } finally {
       setLoading(false);
@@ -109,16 +81,15 @@ function App() {
     fetchProducts();
   }, []);
 
-  // 🔍 Función de búsqueda con paginación
+  // 🔍 Función de búsqueda mejorada con todos los filtros
   const handleSearch = async (filters) => {
     console.log("🔍 USANDO FILTRO COMPLETO EN REACT");
     console.log("Filtros aplicados:", filters);
-    setActiveSection("paquetes"); // 🆕 Ir a sección paquetes
     setLoading(true);
     setError(null);
 
     try {
-      // Obtener TODOS los paquetes sin filtro
+      // 1. Obtener TODOS los paquetes sin filtro
       const res = await fetch(
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         {
@@ -147,7 +118,7 @@ function App() {
 
       console.log("🔍 Total de paquetes antes del filtro:", totalCount);
 
-      // APLICAR TODOS LOS FILTROS
+      // 2. APLICAR TODOS LOS FILTROS
       let paquetesFiltrados = formatted;
 
       // Filtro por destino
@@ -220,7 +191,7 @@ function App() {
         );
       }
 
-      // Filtro por precio mínimo
+      // 🆕 Filtro por precio mínimo
       if (filters.precioMin && filters.precioMin.trim() !== "") {
         const precioMin = parseFloat(filters.precioMin);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -232,7 +203,7 @@ function App() {
         );
       }
 
-      // Filtro por precio máximo
+      // 🆕 Filtro por precio máximo
       if (filters.precioMax && filters.precioMax.trim() !== "") {
         const precioMax = parseFloat(filters.precioMax);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -244,7 +215,7 @@ function App() {
         );
       }
 
-      // Filtro por duración mínima (noches)
+      // 🆕 Filtro por duración mínima (noches)
       if (filters.duracionMin && filters.duracionMin.trim() !== "") {
         const duracionMin = parseInt(filters.duracionMin);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -256,7 +227,7 @@ function App() {
         );
       }
 
-      // Filtro por duración máxima (noches)
+      // 🆕 Filtro por duración máxima (noches)
       if (filters.duracionMax && filters.duracionMax.trim() !== "") {
         const duracionMax = parseInt(filters.duracionMax);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -277,9 +248,10 @@ function App() {
         "paquetes"
       );
 
+      // 3. Actualizar información de resultados
       setResultsInfo({ results: resultsCount, total: totalCount });
 
-      // Procesar productos filtrados
+      // 4. Procesar productos filtrados
       const processedProducts = paquetesFiltrados
         .filter((p) => p && p.titulo)
         .map((p, index) => ({
@@ -296,13 +268,9 @@ function App() {
           rawData: p,
         }));
 
-      // 🆕 Aplicar paginación a resultados filtrados
-      setAllProducts(processedProducts);
-      const initialProducts = processedProducts.slice(0, PRODUCTS_PER_PAGE);
-      setDisplayedProducts(initialProducts);
-      setCurrentPage(1);
+      setProducts(processedProducts);
 
-      // Mensajes cuando no hay resultados
+      // 5. Mensajes mejorados cuando no hay resultados
       if (processedProducts.length === 0) {
         const activeFilters = Object.entries(filters)
           .filter(
@@ -339,156 +307,53 @@ function App() {
     }
   };
 
-  // Función reset para mostrar todos los paquetes
+  // 🔄 Función reset para mostrar todos los paquetes
   const handleReset = async () => {
     await fetchProducts();
-    setActiveSection("paquetes");
   };
 
   const addToCart = (product) => setCart((prev) => [...prev, product]);
   const removeFromCart = (id) =>
     setCart((prev) => prev.filter((item) => item.id !== id));
 
-  // 🆕 Función para cambiar de sección
-  const handleSectionChange = (section) => {
-    setActiveSection(section);
-  };
+  if (loading)
+    return (
+      <div className="loading-container">
+        <p>Cargando productos...</p>
+      </div>
+    );
 
-  // 🆕 Renderizado condicional del contenido según la sección activa
-  const renderContent = () => {
-    if (loading) {
-      return (
-        <div className="loading-container">
-          <p>Cargando productos...</p>
-        </div>
-      );
-    }
-
-    if (error && activeSection === "paquetes") {
-      return (
-        <div className="error-container">
-          <p style={{ whiteSpace: "pre-line" }}>{error}</p>
-          <button onClick={() => window.location.reload()}>Reintentar</button>
-        </div>
-      );
-    }
-
-    switch (activeSection) {
-      case "inicio":
-        return (
-          <>
-            <CarouselList images={images} />
-            {/* <InicioComponent /> */}
-            <div style={{ padding: "60px 20px", textAlign: "center" }}>
-              <h1>Bienvenidos a Travel Connect</h1>
-              <p>
-                Aquí irá tu componente InicioComponent cuando lo tengas listo
-              </p>
-            </div>
-          </>
-        );
-
-      case "paquetes":
-        const hasMoreProducts = displayedProducts.length < allProducts.length;
-
-        return (
-          <>
-            <CarouselList images={images} />
-            <SearchBar
-              onSearch={handleSearch}
-              onReset={handleReset}
-              resultsCount={resultsInfo.results}
-              totalCount={resultsInfo.total}
-            />
-            <main className="main-content">
-              {/* 🆕 Mostrar información de paginación */}
-              <div className="pagination-info">
-                <p>
-                  Mostrando {displayedProducts.length} de {allProducts.length}{" "}
-                  paquetes
-                  {resultsInfo.results !== resultsInfo.total &&
-                    ` (${allProducts.length} coincidencias de ${resultsInfo.total} totales)`}
-                </p>
-              </div>
-
-              <ProductList
-                products={displayedProducts} // 🆕 Usar productos paginados
-                addToCart={addToCart}
-                onSelect={(product) => setSelectedProduct(product)}
-              />
-
-              {/* 🆕 Botón "Ver más" */}
-              {hasMoreProducts && (
-                <div className="load-more-container">
-                  <button
-                    className="load-more-btn"
-                    onClick={loadMoreProducts}
-                    disabled={loading}
-                  >
-                    {loading
-                      ? "Cargando..."
-                      : `Ver más paquetes (${
-                          allProducts.length - displayedProducts.length
-                        } restantes)`}
-                  </button>
-                </div>
-              )}
-
-              {/* 🆕 Mensaje cuando se muestran todos */}
-              {!hasMoreProducts && allProducts.length > PRODUCTS_PER_PAGE && (
-                <div className="all-products-loaded">
-                  <p>✅ Se han mostrado todos los paquetes disponibles</p>
-                  <button
-                    className="back-to-top-btn"
-                    onClick={() =>
-                      window.scrollTo({ top: 0, behavior: "smooth" })
-                    }
-                  >
-                    ⬆️ Volver al inicio
-                  </button>
-                </div>
-              )}
-            </main>
-          </>
-        );
-
-      case "contacto":
-        return <Formulario />;
-
-      default:
-        return (
-          <>
-            <CarouselList images={images} />
-            {/* <InicioComponent /> */}
-            <div style={{ padding: "60px 20px", textAlign: "center" }}>
-              <h1>Bienvenidos a Travel Connect</h1>
-              <p>
-                Aquí irá tu componente InicioComponent cuando lo tengas listo
-              </p>
-            </div>
-          </>
-        );
-    }
-  };
+  if (error)
+    return (
+      <div className="error-container">
+        <p style={{ whiteSpace: "pre-line" }}>{error}</p>
+        <button onClick={() => window.location.reload()}>Reintentar</button>
+      </div>
+    );
 
   return (
     <>
-      <Navbar
-        cart={cart}
-        removeFromCart={removeFromCart}
-        activeSection={activeSection}
-        onSectionChange={handleSectionChange}
+      <Navbar cart={cart} removeFromCart={removeFromCart} />
+      <CarouselList images={images} />
+      <SearchBar
+        onSearch={handleSearch}
+        onReset={handleReset}
+        resultsCount={resultsInfo.results}
+        totalCount={resultsInfo.total}
       />
-
-      {renderContent()}
-
+      <main className="main-content">
+        <ProductList
+          products={products}
+          addToCart={addToCart}
+          onSelect={(product) => setSelectedProduct(product)}
+        />
+      </main>
       {selectedProduct && (
         <Modal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
         />
       )}
-
       <Footer />
     </>
   );
