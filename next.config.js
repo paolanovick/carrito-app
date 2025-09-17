@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  trailingSlash: true,
-  distDir: "build",
+  experimental: {
+    outputFileTracingRoot: undefined,
+  },
 };
 
 module.exports = nextConfig;
