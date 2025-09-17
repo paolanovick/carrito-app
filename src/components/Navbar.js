@@ -16,9 +16,15 @@ const Navbar = ({ cart, removeFromCart }) => {
       </div>
 
       <ul>
-        <li>Inicio</li>
-        <li>Paquetes</li>
-        <li>Contacto</li>
+        <li>
+          <a href="#inicio">Inicio</a>
+        </li>
+        <li>
+          <a href="#paquetes">Paquetes</a>
+        </li>
+        <li>
+          <a href="#contacto">Contacto</a>
+        </li>
         <li className="cart-item" onClick={() => setShowCart((prev) => !prev)}>
           Carrito
           <span className={`cart-badge ${cart.length > 0 ? "has-items" : ""}`}>

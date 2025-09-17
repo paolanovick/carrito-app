@@ -14,6 +14,7 @@ function App() {
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
+  const [showAll, setShowAll] = useState(false);
 
   // Cargar productos al inicio
   const fetchProducts = async () => {
@@ -52,7 +53,7 @@ function App() {
         results: processedProducts.length,
         total: processedProducts.length,
       });
-
+ setShowAll(false);
       const processedImages = formatted
         .filter((p) => p && p.imagen_principal)
         .slice(0, 7)
@@ -269,7 +270,7 @@ function App() {
         }));
 
       setProducts(processedProducts);
-
+ setShowAll(true);
       // 5. Mensajes mejorados cuando no hay resultados
       if (processedProducts.length === 0) {
         const activeFilters = Object.entries(filters)
@@ -333,30 +334,68 @@ function App() {
 
   return (
     <>
+      {/* Navbar fija */}
       <Navbar cart={cart} removeFromCart={removeFromCart} />
-      <CarouselList images={images} />
+
+      {/* Inicio */}
+      <div id="inicio">
+        <CarouselList images={images} />
+      </div>
+
       <SearchBar
         onSearch={handleSearch}
         onReset={handleReset}
         resultsCount={resultsInfo.results}
         totalCount={resultsInfo.total}
       />
-      <main className="main-content">
+
+      {/* Paquetes */}
+      <main id="paquetes" className="main-content">
+        <h2 style={{ textAlign: "center", margin: "40px 0 20px" }}>
+          Nuestros Recomendados
+        </h2>
+
         <ProductList
-          products={products}
+          products={showAll ? products : products.slice(0, 10)}
           addToCart={addToCart}
           onSelect={(product) => setSelectedProduct(product)}
         />
+
+        {products.length > 10 && (
+          <div style={{ textAlign: "center", marginTop: "20px" }}>
+            <button
+              onClick={() => setShowAll(!showAll)}
+              style={{
+                padding: "10px 20px",
+                borderRadius: "8px",
+                border: "none",
+                backgroundColor: "#007bff",
+                color: "#fff",
+                cursor: "pointer",
+                fontSize: "16px",
+              }}
+            >
+              {showAll ? "Ver menos" : "Ver más"}
+            </button>
+          </div>
+        )}
       </main>
+
+      {/* Modal producto */}
       {selectedProduct && (
         <Modal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
         />
       )}
-      <Footer />
+
+      {/* Footer */}
+      <footer id="contacto">
+        <Footer />
+      </footer>
     </>
   );
+
 }
 
 export default App;
