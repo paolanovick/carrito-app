@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    outputFileTracingRoot: undefined,
-  },
+  reactStrictMode: true,
+  output: "standalone",
 };
 
 module.exports = nextConfig;
