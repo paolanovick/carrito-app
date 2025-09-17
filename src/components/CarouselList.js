@@ -43,7 +43,7 @@ const CarouselList = ({ images }) => {
 
   return (
     <div className="carousel-container">
-      <h2 className="carousel-title">IMPERDIBLES DE ESTA TEMPORADA!!!!!!!!!!!!!</h2>
+      <h2 className="carousel-title">IMPERDIBLES DE ESTA TEMPORADA</h2>
 
       <div className="carousel-wrapper">
         {/* Imagen Principal */}
@@ -135,12 +135,12 @@ const CarouselList = ({ images }) => {
         }
 
         .carousel-title {
-          font-size: 2.3rem;
+          font-size: 4rem;
           font-weight: 700;
-          color: #514628ff;
+          color: #020202ff;
           text-align: center;
           margin-bottom: 25px;
-          text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
+          
         }
 
         .no-images {
