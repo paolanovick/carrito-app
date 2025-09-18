@@ -651,7 +651,7 @@ form button:hover {
 .tab-btn.active {
   
   color: rgb(12, 12, 12);
-  box-shadow: 0 4px 10px rgba(59,130,246,0.2);
+ 
 }
 
 /* Indicador de resultados */
