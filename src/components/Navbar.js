@@ -41,11 +41,11 @@ const Navbar = ({ cart, removeFromCart, addProductToList }) => {
           )}
         </li>
 
-        {/* Dashboard Atlas */}
+        {/* Dashboard */}
         <li
           className="dashboard-item"
           onClick={() => setShowDashboard((prev) => !prev)}
-          style={{ cursor: "pointer", position: "relative" }} // necesario para que el dropdown se posicione bien
+          style={{ cursor: "pointer", position: "relative" }}
         >
           Dashboard
           {showDashboard && (
@@ -64,7 +64,7 @@ const Navbar = ({ cart, removeFromCart, addProductToList }) => {
                 zIndex: 1000,
                 boxShadow: "0 0 15px rgba(0,0,0,0.3)",
                 display: "flex",
-                flexDirection: "column", // para que los inputs no se contraigan
+                flexDirection: "column",
               }}
             >
               <AtlasForm onNewPackage={addProductToList} />

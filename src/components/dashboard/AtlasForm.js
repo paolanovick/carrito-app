@@ -12,18 +12,15 @@ const AtlasForm = ({ onNewPackage }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setSuccess(false); // limpiar mensaje de éxito al editar
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccess(false);
 
     try {
       const res = await fetch(
@@ -35,11 +32,11 @@ const AtlasForm = ({ onNewPackage }) => {
         }
       );
 
-      if (!res.ok) throw new Error("Error al enviar paquete a n8n");
+      if (!res.ok) throw new Error("Error al crear paquete Atlas");
 
       const createdPackage = await res.json();
 
-      // Llamamos a la función de App.js para agregar el producto
+      // Llamamos a la función de App.js para agregar el paquete a la lista
       onNewPackage &&
         onNewPackage({
           id: createdPackage.paquete_externo_id || `package-${Date.now()}`,
@@ -62,7 +59,7 @@ const AtlasForm = ({ onNewPackage }) => {
           rawData: createdPackage,
         });
 
-      setSuccess(true);
+      // Limpiar formulario
       setFormData({
         titulo: "",
         descripcion: "",
@@ -82,12 +79,7 @@ const AtlasForm = ({ onNewPackage }) => {
 
   return (
     <form onSubmit={handleSubmit} className="atlas-form">
-      <h3>Agregar Paquete Atlas</h3>
       {error && <p style={{ color: "red" }}>{error}</p>}
-      {success && (
-        <p style={{ color: "green" }}>Paquete agregado correctamente!</p>
-      )}
-
       <input
         type="text"
         name="titulo"
@@ -102,6 +94,7 @@ const AtlasForm = ({ onNewPackage }) => {
         placeholder="Descripción"
         value={formData.descripcion}
         onChange={handleChange}
+        required
       />
       <input
         type="number"
