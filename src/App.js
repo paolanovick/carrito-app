@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Navbar from "./components/Navbar";
 import CarouselList from "./components/CarouselList";
 import ProductList from "./components/ProductList";
@@ -34,13 +34,13 @@ function App() {
           p.destinos?.destino?.ciudad || p.destinoCiudad || "Desconocido",
         destinoPais:
           p.destinos?.destino?.pais || p.destinoPais || "Desconocido",
-        proveedor: p.proveedor || "DESCONOCIDO",
+        proveedor: p.usuario || "DESCONOCIDO",
         rawData: p,
       }));
   };
 
   // 🔹 Cargar productos al inicio
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -93,11 +93,12 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
+  // 🔹 Ejecutar al inicio
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]); // ✅ Ahora ESLint no se queja
 
   // 🔍 Búsqueda con filtros
   const handleSearch = async (filters) => {
