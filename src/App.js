@@ -6,8 +6,6 @@ import Footer from "./components/Footer";
 import Modal from "./components/Modal";
 import SearchBar from "./components/SearchBar";
 
-
-
 function App() {
   const [cart, setCart] = useState([]);
   const [products, setProducts] = useState([]);
@@ -18,8 +16,30 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
-  // 🔹 Cargar productos al inicio (AllSeason + Atlas vía n8n)
-  // 🔹 Cargar productos al inicio (AllSeason + Atlas vía n8n)
+  // 🔹 Función para formatear los paquetes
+  const formatPackages = (paquetes) => {
+    const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
+    return formatted
+      .filter((p) => p && (p.titulo || p.nombre))
+      .map((p, index) => ({
+        id: p.paquete_externo_id || p.codigo || `package-${index}`,
+        titulo:
+          p.titulo?.replace(/<[^>]*>/g, "").trim() || p.nombre || "Sin título",
+        imagen_principal:
+          p.imagen_principal || p.imagen || "https://via.placeholder.com/200",
+        url: p.url?.trim() || "#",
+        cant_noches: parseInt(p.cant_noches || p.noches || 0),
+        doble_precio: parseFloat(p.doble_precio || p.precio || 0),
+        destinoCiudad:
+          p.destinos?.destino?.ciudad || p.destinoCiudad || "Desconocido",
+        destinoPais:
+          p.destinos?.destino?.pais || p.destinoPais || "Desconocido",
+        proveedor: p.proveedor || "DESCONOCIDO",
+        rawData: p,
+      }));
+  };
+
+  // 🔹 Cargar productos al inicio
   const fetchProducts = async () => {
     setLoading(true);
     setError(null);
@@ -29,47 +49,22 @@ function App() {
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         { method: "GET" }
       );
-
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
-      // Recibir como texto primero
       const text = await res.text();
-      console.log("Datos recibidos (AllSeason + Atlas crudo):", text);
-
-      // Intentar parsear JSON seguro
       let data;
       try {
         data = JSON.parse(text);
-      } catch (e) {
-        console.error("Error parseando JSON inicial:", e);
-        data = { paquetes: [] }; // fallback seguro
+      } catch (err) {
+        console.warn(
+          "JSON malformado al cargar productos, usando fallback:",
+          err
+        );
+        data = { paquetes: [] };
       }
 
-      // Tomamos los paquetes de la respuesta combinada de n8n
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
-      const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
-
-      // 🔹 Formatear productos para React
-      const processedProducts = formatted
-        .filter((p) => p && (p.titulo || p.nombre))
-        .map((p, index) => ({
-          id: p.paquete_externo_id || p.codigo || `package-${index}`,
-          titulo:
-            p.titulo?.replace(/<[^>]*>/g, "").trim() ||
-            p.nombre ||
-            "Sin título",
-          imagen_principal:
-            p.imagen_principal || p.imagen || "https://via.placeholder.com/200",
-          url: p.url?.trim() || "#",
-          cant_noches: parseInt(p.cant_noches || p.noches || 0),
-          doble_precio: parseFloat(p.doble_precio || p.precio || 0),
-          destinoCiudad:
-            p.destinos?.destino?.ciudad || p.destinoCiudad || "Desconocido",
-          destinoPais:
-            p.destinos?.destino?.pais || p.destinoPais || "Desconocido",
-          proveedor: p.proveedor || "DESCONOCIDO",
-          rawData: p,
-        }));
+      const processedProducts = formatPackages(paquetes);
 
       setProducts(processedProducts);
       setResultsInfo({
@@ -77,7 +72,6 @@ function App() {
         total: processedProducts.length,
       });
 
-      // 🔹 Imágenes para el carousel
       const processedImages = processedProducts
         .filter((p) => p && p.imagen_principal)
         .slice(0, 7)
@@ -105,8 +99,7 @@ function App() {
     fetchProducts();
   }, []);
 
-  // 🔍 Función de búsqueda con todos los filtros
-  // 🔍 Función de búsqueda segura
+  // 🔍 Búsqueda con filtros
   const handleSearch = async (filters) => {
     setLoading(true);
     setError(null);
@@ -124,44 +117,22 @@ function App() {
         }
       );
 
-      // Recibir como texto primero
-      const text = await res.text();
-      console.log("Respuesta cruda de la API:", text);
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
-      // Intentar parsear JSON seguro
+      const text = await res.text();
       let data;
       try {
         data = JSON.parse(text);
-      } catch (e) {
-        console.error("Error parseando JSON:", e);
-        data = { paquetes: [] }; // fallback seguro
+      } catch (err) {
+        console.warn(
+          "JSON malformado al buscar paquetes, usando fallback:",
+          err
+        );
+        data = { paquetes: [] };
       }
 
-      // Tomar los paquetes
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
-      const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
-
-      // Procesar productos
-      const processedProducts = formatted
-        .filter((p) => p && (p.titulo || p.nombre))
-        .map((p, index) => ({
-          id: p.paquete_externo_id || p.codigo || `package-${index}`,
-          titulo:
-            p.titulo?.replace(/<[^>]*>/g, "").trim() ||
-            p.nombre ||
-            "Sin título",
-          imagen_principal:
-            p.imagen_principal || p.imagen || "https://via.placeholder.com/200",
-          url: p.url?.trim() || "#",
-          cant_noches: parseInt(p.cant_noches || p.noches || 0),
-          doble_precio: parseFloat(p.doble_precio || p.precio || 0),
-          destinoCiudad:
-            p.destinos?.destino?.ciudad || p.destinoCiudad || "Desconocido",
-          destinoPais:
-            p.destinos?.destino?.pais || p.destinoPais || "Desconocido",
-          proveedor: p.proveedor || "DESCONOCIDO",
-          rawData: p,
-        }));
+      const processedProducts = formatPackages(paquetes);
 
       setProducts(processedProducts);
       setResultsInfo({
@@ -170,7 +141,6 @@ function App() {
       });
       setShowAll(true);
 
-      // Preparar imágenes para carousel
       const processedImages = processedProducts
         .filter((p) => p && p.imagen_principal)
         .slice(0, 7)
