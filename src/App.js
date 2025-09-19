@@ -26,6 +26,8 @@ function App() {
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         { method: "GET" }
       );
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+
       const data = await res.json();
       console.log("Datos recibidos:", data);
 
@@ -53,7 +55,8 @@ function App() {
         results: processedProducts.length,
         total: processedProducts.length,
       });
- setShowAll(false);
+      setShowAll(false);
+
       const processedImages = formatted
         .filter((p) => p && p.imagen_principal)
         .slice(0, 7)
@@ -82,7 +85,7 @@ function App() {
     fetchProducts();
   }, []);
 
-  // 🔍 Función de búsqueda mejorada con todos los filtros
+  // Función de búsqueda mejorada con todos los filtros
   const handleSearch = async (filters) => {
     console.log("🔍 USANDO FILTRO COMPLETO EN REACT");
     console.log("Filtros aplicados:", filters);
@@ -90,7 +93,6 @@ function App() {
     setError(null);
 
     try {
-      // 1. Obtener TODOS los paquetes sin filtro
       const res = await fetch(
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         {
@@ -119,10 +121,8 @@ function App() {
 
       console.log("🔍 Total de paquetes antes del filtro:", totalCount);
 
-      // 2. APLICAR TODOS LOS FILTROS
       let paquetesFiltrados = formatted;
 
-      // Filtro por destino
       if (filters.destino && filters.destino.trim() !== "") {
         const destinoBuscado = filters.destino.toLowerCase();
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -150,7 +150,6 @@ function App() {
         );
       }
 
-      // Filtro por salida (origen)
       if (filters.salida && filters.salida.trim() !== "") {
         const salidaBuscada = filters.salida.toLowerCase();
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -162,7 +161,6 @@ function App() {
         );
       }
 
-      // Filtro por fecha
       if (filters.fecha && filters.fecha.trim() !== "") {
         const fechaBuscada = filters.fecha;
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -192,7 +190,6 @@ function App() {
         );
       }
 
-      // 🆕 Filtro por precio mínimo
       if (filters.precioMin && filters.precioMin.trim() !== "") {
         const precioMin = parseFloat(filters.precioMin);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -204,7 +201,6 @@ function App() {
         );
       }
 
-      // 🆕 Filtro por precio máximo
       if (filters.precioMax && filters.precioMax.trim() !== "") {
         const precioMax = parseFloat(filters.precioMax);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -216,7 +212,6 @@ function App() {
         );
       }
 
-      // 🆕 Filtro por duración mínima (noches)
       if (filters.duracionMin && filters.duracionMin.trim() !== "") {
         const duracionMin = parseInt(filters.duracionMin);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -228,7 +223,6 @@ function App() {
         );
       }
 
-      // 🆕 Filtro por duración máxima (noches)
       if (filters.duracionMax && filters.duracionMax.trim() !== "") {
         const duracionMax = parseInt(filters.duracionMax);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -249,10 +243,8 @@ function App() {
         "paquetes"
       );
 
-      // 3. Actualizar información de resultados
       setResultsInfo({ results: resultsCount, total: totalCount });
 
-      // 4. Procesar productos filtrados
       const processedProducts = paquetesFiltrados
         .filter((p) => p && p.titulo)
         .map((p, index) => ({
@@ -270,8 +262,8 @@ function App() {
         }));
 
       setProducts(processedProducts);
- setShowAll(true);
-      // 5. Mensajes mejorados cuando no hay resultados
+      setShowAll(true);
+
       if (processedProducts.length === 0) {
         const activeFilters = Object.entries(filters)
           .filter(
@@ -308,7 +300,7 @@ function App() {
     }
   };
 
-  // 🔄 Función reset para mostrar todos los paquetes
+  // Reset para mostrar todos los paquetes
   const handleReset = async () => {
     await fetchProducts();
   };
@@ -351,8 +343,6 @@ function App() {
 
       {/* Paquetes */}
       <main id="paquetes" className="main-content">
-       
-
         <ProductList
           products={showAll ? products : products.slice(0, 10)}
           addToCart={addToCart}
@@ -393,7 +383,6 @@ function App() {
       </footer>
     </>
   );
-
 }
 
 export default App;
