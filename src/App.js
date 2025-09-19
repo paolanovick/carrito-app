@@ -5,6 +5,8 @@ import ProductList from "./components/ProductList";
 import Footer from "./components/Footer";
 import Modal from "./components/Modal";
 import SearchBar from "./components/SearchBar";
+import AtlasForm from "./components/dashboard/AtlasForm";
+
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -237,6 +239,10 @@ function App() {
           onClose={() => setSelectedProduct(null)}
         />
       )}
+      <div id="dashboard">
+        <h1>Dashboard de Administración</h1>
+        <AtlasForm onNewPackage={fetchProducts} />
+      </div>
 
       <footer id="contacto">
         <Footer />

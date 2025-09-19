@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import Cart from "./Cart";
+import AtlasForm from "./dashboard/AtlasForm";
 
 const Navbar = ({ cart, removeFromCart }) => {
   const [showCart, setShowCart] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
 
   return (
     <nav>
@@ -25,6 +27,8 @@ const Navbar = ({ cart, removeFromCart }) => {
         <li>
           <a href="#contacto">Contacto</a>
         </li>
+
+        {/* Carrito */}
         <li className="cart-item" onClick={() => setShowCart((prev) => !prev)}>
           Carrito
           <span className={`cart-badge ${cart.length > 0 ? "has-items" : ""}`}>
@@ -33,6 +37,35 @@ const Navbar = ({ cart, removeFromCart }) => {
           {showCart && (
             <div className="cart-dropdown">
               <Cart cart={cart} removeFromCart={removeFromCart} />
+            </div>
+          )}
+        </li>
+
+        {/* Dashboard Atlas */}
+        <li
+          className="dashboard-item"
+          onClick={() => setShowDashboard((prev) => !prev)}
+          style={{ cursor: "pointer" }}
+        >
+          Dashboard
+          {showDashboard && (
+            <div
+              style={{
+                position: "absolute",
+                top: "50px",
+                right: "10px",
+                width: "400px",
+                maxHeight: "80vh",
+                overflowY: "auto",
+                backgroundColor: "#fff",
+                border: "1px solid #ccc",
+                borderRadius: "8px",
+                padding: "15px",
+                zIndex: 1000,
+                boxShadow: "0 0 15px rgba(0,0,0,0.3)",
+              }}
+            >
+              <AtlasForm />
             </div>
           )}
         </li>
