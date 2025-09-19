@@ -5,8 +5,7 @@ import ProductList from "./components/ProductList";
 import Footer from "./components/Footer";
 import Modal from "./components/Modal";
 import SearchBar from "./components/SearchBar";
-import AtlasForm from "./components/dashboard/AtlasForm";
-
+import AtlasForm from "./components/dashboard/AtlasForm"; // <-- Importa el form
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -31,13 +30,9 @@ function App() {
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
       const data = await res.json();
-      console.log("Datos recibidos (AllSeason + Atlas combinados):", data);
-
-      // 🔹 Tomamos los paquetes de la respuesta combinada de n8n
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
-      // 🔹 Formatear productos para React
       const processedProducts = formatted
         .filter((p) => p && (p.titulo || p.nombre))
         .map((p, index) => ({
@@ -65,7 +60,6 @@ function App() {
         total: processedProducts.length,
       });
 
-      // 🔹 Imágenes para el carousel
       const processedImages = processedProducts
         .filter((p) => p && p.imagen_principal)
         .slice(0, 7)
@@ -177,6 +171,11 @@ function App() {
   const removeFromCart = (id) =>
     setCart((prev) => prev.filter((item) => item.id !== id));
 
+  // 🔹 Función para agregar paquete desde el AtlasForm
+  const handleNewPackage = (newPackage) => {
+    setProducts((prev) => [newPackage, ...prev]);
+  };
+
   if (loading)
     return (
       <div className="loading-container">
@@ -239,7 +238,15 @@ function App() {
           onClose={() => setSelectedProduct(null)}
         />
       )}
-    
+
+      {/* 🔹 Dashboard para agregar paquetes */}
+      <div
+        id="dashboard"
+        style={{ padding: "20px", backgroundColor: "#f5f5f5" }}
+      >
+        <h2>Dashboard de Administración</h2>
+        <AtlasForm onNewPackage={handleNewPackage} />
+      </div>
 
       <footer id="contacto">
         <Footer />

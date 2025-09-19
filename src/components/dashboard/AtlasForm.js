@@ -12,6 +12,7 @@ const AtlasForm = ({ onNewPackage }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,6 +22,7 @@ const AtlasForm = ({ onNewPackage }) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(false);
 
     try {
       // POST a tu endpoint de Atlas (n8n)
@@ -48,6 +50,8 @@ const AtlasForm = ({ onNewPackage }) => {
         destinoPais: "",
         noches: "",
       });
+
+      setSuccess(true);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -58,7 +62,12 @@ const AtlasForm = ({ onNewPackage }) => {
   return (
     <form onSubmit={handleSubmit} className="atlas-form">
       <h3>Agregar Paquete Atlas</h3>
+
       {error && <p style={{ color: "red" }}>{error}</p>}
+      {success && (
+        <p style={{ color: "green" }}>Paquete agregado correctamente!</p>
+      )}
+
       <input
         type="text"
         name="titulo"
