@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import CarouselList from "./components/CarouselList";
 import ProductList from "./components/ProductList";
@@ -16,31 +16,8 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
-  // 🔹 Función para formatear los paquetes
-  const formatPackages = (paquetes) => {
-    const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
-    return formatted
-      .filter((p) => p && (p.titulo || p.nombre))
-      .map((p, index) => ({
-        id: p.paquete_externo_id || p.codigo || `package-${index}`,
-        titulo:
-          p.titulo?.replace(/<[^>]*>/g, "").trim() || p.nombre || "Sin título",
-        imagen_principal:
-          p.imagen_principal || p.imagen || "https://via.placeholder.com/200",
-        url: p.url?.trim() || "#",
-        cant_noches: parseInt(p.cant_noches || p.noches || 0),
-        doble_precio: parseFloat(p.doble_precio || p.precio || 0),
-        destinoCiudad:
-          p.destinos?.destino?.ciudad || p.destinoCiudad || "Desconocido",
-        destinoPais:
-          p.destinos?.destino?.pais || p.destinoPais || "Desconocido",
-        proveedor: p.proveedor || "DESCONOCIDO",
-        rawData: p,
-      }));
-  };
-
-  // 🔹 Cargar productos al inicio
-  const fetchProducts = useCallback(async () => {
+  // Cargar productos al inicio
+  const fetchProducts = async () => {
     setLoading(true);
     setError(null);
 
@@ -49,42 +26,48 @@ function App() {
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         { method: "GET" }
       );
-      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
-
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (err) {
-        console.warn(
-          "JSON malformado al cargar productos, usando fallback:",
-          err
-        );
-        data = { paquetes: [] };
-      }
+      const data = await res.json();
+      console.log("Datos recibidos:", data);
 
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
-      const processedProducts = formatPackages(paquetes);
+      const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
+
+      const processedProducts = formatted
+        .filter((p) => p && p.titulo)
+        .map((p, index) => ({
+          id: p.paquete_externo_id || `package-${index}`,
+          titulo: p.titulo?.replace(/<[^>]*>/g, "").trim() || "Sin título",
+          imagen_principal:
+            p.imagen_principal || "https://via.placeholder.com/200",
+          url: p.url?.trim() || "#",
+          cant_noches: parseInt(p.cant_noches) || 0,
+          doble_precio: parseFloat(p.doble_precio || p.precio || 0),
+          destinoCiudad:
+            p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
+          destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
+          rawData: p,
+        }));
 
       setProducts(processedProducts);
       setResultsInfo({
         results: processedProducts.length,
         total: processedProducts.length,
       });
-
-      const processedImages = processedProducts
+      setShowAll(false);
+      const processedImages = formatted
         .filter((p) => p && p.imagen_principal)
         .slice(0, 7)
         .map((p, index) => ({
-          id: p.id || `image-${index}`,
+          id: p.paquete_externo_id || `image-${index}`,
           url: p.imagen_principal,
-          titulo: p.titulo,
+          titulo:
+            p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
           descripcion: "",
-          alt: p.titulo,
+          alt:
+            p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
         }));
 
       setImages(processedImages);
-      setShowAll(false);
     } catch (err) {
       console.error("Error cargando productos:", err);
       setError(`Error al cargar productos: ${err.message}`);
@@ -93,28 +76,33 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
     fetchProducts();
-  }, [fetchProducts]);
+  }, []);
 
-  // 🔍 Función de búsqueda con filtros
+  // 🔍 Función de búsqueda mejorada con todos los filtros
+  // ✅ Función auxiliar segura para parsear JSON
+  const safeJson = async (res) => {
+    const text = await res.text();
+    if (!text) return null;
+    try {
+      return JSON.parse(text);
+    } catch (err) {
+      console.error("❌ Error al parsear JSON:", err);
+      return null;
+    }
+  };
+
+  // 🔍 Función de búsqueda mejorada con todos los filtros
   const handleSearch = async (filters) => {
+    console.log("🔍 USANDO FILTRO COMPLETO EN REACT");
+    console.log("Filtros aplicados:", filters);
     setLoading(true);
     setError(null);
 
     try {
-      // 🔹 Transformar los filtros al formato que espera la API
-      const body = {
-        destino: filters.destino || "",
-        fecha: filters.fecha || "",
-        salida: filters.salida || "",
-        viajeros: filters.viajeros || "2 adultos",
-        tipo: "paquetes",
-        buscar: true,
-      };
-
       const res = await fetch(
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         {
@@ -123,49 +111,196 @@ function App() {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: JSON.stringify(body),
+          body: JSON.stringify({
+            destino: "",
+            fecha: "",
+            salida: "",
+            viajeros: "2 adultos",
+            tipo: "paquetes",
+            buscar: false,
+          }),
         }
       );
 
-      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
-
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (err) {
-        console.warn(
-          "JSON malformado al buscar paquetes, usando fallback:",
-          err
-        );
-        data = { paquetes: [] };
+      const data = await safeJson(res);
+      if (!res.ok || !data) {
+        throw new Error("La respuesta del servidor es inválida o está vacía.");
       }
 
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
-      const processedProducts = formatPackages(paquetes);
+      const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
+      const totalCount = formatted.length;
 
-      setProducts(processedProducts);
-      setResultsInfo({
-        results: processedProducts.length,
-        total: processedProducts.length,
-      });
-      setShowAll(true);
+      console.log("🔍 Total de paquetes antes del filtro:", totalCount);
 
-      const processedImages = processedProducts
-        .filter((p) => p && p.imagen_principal)
-        .slice(0, 7)
+      let paquetesFiltrados = formatted;
+
+      if (filters.destino && filters.destino.trim() !== "") {
+        const destinoBuscado = filters.destino.toLowerCase();
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const destinos = paquete.destinos?.destino;
+          if (!destinos) return false;
+          if (Array.isArray(destinos)) {
+            return destinos.some((dest) => {
+              const ciudad = (dest.ciudad || "").toLowerCase();
+              const pais = (dest.pais || "").toLowerCase();
+              return (
+                ciudad.includes(destinoBuscado) || pais.includes(destinoBuscado)
+              );
+            });
+          } else {
+            const ciudad = (destinos.ciudad || "").toLowerCase();
+            const pais = (destinos.pais || "").toLowerCase();
+            return (
+              ciudad.includes(destinoBuscado) || pais.includes(destinoBuscado)
+            );
+          }
+        });
+        console.log(
+          `✅ Filtro destino "${filters.destino}": ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      if (filters.salida && filters.salida.trim() !== "") {
+        const salidaBuscada = filters.salida.toLowerCase();
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const origen = (paquete.origen || "").toLowerCase();
+          return origen.includes(salidaBuscada);
+        });
+        console.log(
+          `✅ Filtro salida "${filters.salida}": ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      if (filters.fecha && filters.fecha.trim() !== "") {
+        const fechaBuscada = filters.fecha;
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const salidas = paquete.salidas?.salida;
+          if (!salidas) return false;
+          if (Array.isArray(salidas)) {
+            return salidas.some((salida) => {
+              const fechaDesde = salida.fecha_desde || "";
+              const fechaHasta = salida.fecha_hasta || "";
+              return (
+                fechaDesde.includes(fechaBuscada) ||
+                fechaHasta.includes(fechaBuscada)
+              );
+            });
+          } else {
+            const fechaDesde = salidas.fecha_desde || "";
+            const fechaHasta = salidas.fecha_hasta || "";
+            return (
+              fechaDesde.includes(fechaBuscada) ||
+              fechaHasta.includes(fechaBuscada)
+            );
+          }
+        });
+        console.log(
+          `✅ Filtro fecha "${filters.fecha}": ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      if (filters.precioMin && filters.precioMin.trim() !== "") {
+        const precioMin = parseFloat(filters.precioMin);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const precio = parseFloat(paquete.doble_precio || 0);
+          return precio >= precioMin;
+        });
+        console.log(
+          `✅ Filtro precio mínimo ${precioMin}: ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      if (filters.precioMax && filters.precioMax.trim() !== "") {
+        const precioMax = parseFloat(filters.precioMax);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const precio = parseFloat(paquete.doble_precio || 0);
+          return precio <= precioMax;
+        });
+        console.log(
+          `✅ Filtro precio máximo ${precioMax}: ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      if (filters.duracionMin && filters.duracionMin.trim() !== "") {
+        const duracionMin = parseInt(filters.duracionMin);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const noches = parseInt(paquete.cant_noches || 0);
+          return noches >= duracionMin;
+        });
+        console.log(
+          `✅ Filtro duración mínima ${duracionMin} noches: ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      if (filters.duracionMax && filters.duracionMax.trim() !== "") {
+        const duracionMax = parseInt(filters.duracionMax);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const noches = parseInt(paquete.cant_noches || 0);
+          return noches <= duracionMax;
+        });
+        console.log(
+          `✅ Filtro duración máxima ${duracionMax} noches: ${paquetesFiltrados.length} paquetes`
+        );
+      }
+
+      const resultsCount = paquetesFiltrados.length;
+      console.log(
+        "🎯 RESULTADO FINAL:",
+        resultsCount,
+        "de",
+        totalCount,
+        "paquetes"
+      );
+
+      setResultsInfo({ results: resultsCount, total: totalCount });
+
+      const processedProducts = paquetesFiltrados
+        .filter((p) => p && p.titulo)
         .map((p, index) => ({
-          id: p.id || `image-${index}`,
-          url: p.imagen_principal,
-          titulo: p.titulo,
-          descripcion: "",
-          alt: p.titulo,
+          id: p.paquete_externo_id || `package-${index}`,
+          titulo: p.titulo?.replace(/<[^>]*>/g, "").trim() || "Sin título",
+          imagen_principal:
+            p.imagen_principal || "https://via.placeholder.com/200",
+          url: p.url?.trim() || "#",
+          cant_noches: parseInt(p.cant_noches) || 0,
+          doble_precio: parseFloat(p.doble_precio || p.precio || 0),
+          destinoCiudad:
+            p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
+          destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
+          rawData: p,
         }));
 
-      setImages(processedImages);
+      setProducts(processedProducts);
+      setShowAll(true);
 
       if (processedProducts.length === 0) {
-        setError("No se encontraron paquetes con los filtros aplicados.");
+        const activeFilters = Object.entries(filters)
+          .filter(
+            ([key, value]) => value && value.trim() !== "" && key !== "tipo"
+          )
+          .map(([key, value]) => {
+            const filterNames = {
+              destino: "Destino",
+              salida: "Salida",
+              fecha: "Fecha",
+              precioMin: "Precio mínimo",
+              precioMax: "Precio máximo",
+              duracionMin: "Duración mínima",
+              duracionMax: "Duración máxima",
+            };
+            return `${filterNames[key] || key}: ${value}`;
+          });
+
+        if (activeFilters.length > 0) {
+          setError(
+            `No se encontraron paquetes que coincidan con los filtros aplicados:\n\n${activeFilters.join(
+              "\n"
+            )}\n\nIntenta ajustar o eliminar algunos filtros para ver más resultados.`
+          );
+        } else {
+          setError("No se encontraron paquetes disponibles en este momento.");
+        }
       }
     } catch (err) {
       console.error("Error al buscar paquetes:", err);
@@ -175,6 +310,7 @@ function App() {
     }
   };
 
+  // 🔄 Función reset para mostrar todos los paquetes
   const handleReset = async () => {
     await fetchProducts();
   };
@@ -200,7 +336,10 @@ function App() {
 
   return (
     <>
+      {/* Navbar fija */}
       <Navbar cart={cart} removeFromCart={removeFromCart} />
+
+      {/* Inicio */}
       <div id="inicio">
         <CarouselList images={images} />
       </div>
@@ -212,6 +351,7 @@ function App() {
         totalCount={resultsInfo.total}
       />
 
+      {/* Paquetes */}
       <main id="paquetes" className="main-content">
         <ProductList
           products={showAll ? products : products.slice(0, 10)}
@@ -239,6 +379,7 @@ function App() {
         )}
       </main>
 
+      {/* Modal producto */}
       {selectedProduct && (
         <Modal
           product={selectedProduct}
@@ -246,6 +387,7 @@ function App() {
         />
       )}
 
+      {/* Footer */}
       <footer id="contacto">
         <Footer />
       </footer>
