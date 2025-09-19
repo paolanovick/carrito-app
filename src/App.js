@@ -16,7 +16,7 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
-  // 🔹 Función para formatear los paquetes
+  // 🔹 Función para formatear paquetes
   const formatPackages = (paquetes) => {
     const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
     return formatted
@@ -52,15 +52,19 @@ function App() {
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
       const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (err) {
-        console.warn(
-          "JSON malformado al cargar productos, usando fallback:",
-          err
-        );
-        data = { paquetes: [] };
+      let data = { paquetes: [] }; // fallback por defecto
+
+      if (text && text.trim() !== "") {
+        try {
+          data = JSON.parse(text);
+        } catch (err) {
+          console.warn(
+            "JSON malformado al cargar productos, usando fallback",
+            err
+          );
+        }
+      } else {
+        console.warn("La API devolvió respuesta vacía al cargar productos");
       }
 
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
@@ -95,12 +99,12 @@ function App() {
     }
   }, []);
 
-  // 🔹 useEffect ahora sin warning
+  // 🔹 useEffect seguro
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
-  // 🔍 Función de búsqueda con filtros
+  // 🔍 Función de búsqueda con filtros y fallback
   const handleSearch = async (filters) => {
     setLoading(true);
     setError(null);
@@ -121,15 +125,19 @@ function App() {
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
       const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (err) {
-        console.warn(
-          "JSON malformado al buscar paquetes, usando fallback:",
-          err
-        );
-        data = { paquetes: [] };
+      let data = { paquetes: [] }; // fallback por defecto
+
+      if (text && text.trim() !== "") {
+        try {
+          data = JSON.parse(text);
+        } catch (err) {
+          console.warn(
+            "JSON malformado al buscar paquetes, usando fallback",
+            err
+          );
+        }
+      } else {
+        console.warn("La API devolvió respuesta vacía al buscar paquetes");
       }
 
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
