@@ -34,7 +34,7 @@ function App() {
           p.destinos?.destino?.ciudad || p.destinoCiudad || "Desconocido",
         destinoPais:
           p.destinos?.destino?.pais || p.destinoPais || "Desconocido",
-        proveedor: p.usuario || "DESCONOCIDO",
+        proveedor: p.proveedor || "DESCONOCIDO",
         rawData: p,
       }));
   };
@@ -95,12 +95,12 @@ function App() {
     }
   }, []);
 
-  // 🔹 Ejecutar al inicio
+  // 🔹 useEffect ahora sin warning
   useEffect(() => {
     fetchProducts();
-  }, [fetchProducts]); // ✅ Ahora ESLint no se queja
+  }, [fetchProducts]);
 
-  // 🔍 Búsqueda con filtros
+  // 🔍 Función de búsqueda con filtros
   const handleSearch = async (filters) => {
     setLoading(true);
     setError(null);
