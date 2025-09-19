@@ -16,23 +16,70 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
-  // Cargar productos al inicio
+  // ---------------------------
+  // 1️⃣ Función para traer Atlas
+  // ---------------------------
+  const fetchAtlas = async (filters = {}) => {
+    try {
+      const res = await fetch(
+        "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            origen: filters.salida || "",
+            destino: filters.destino || "",
+            fechaIda: filters.fecha || "",
+          }),
+        }
+      );
+
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+      const data = await res.json();
+
+      const paquetes = data?.WSProducto || [];
+      const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
+
+      return formatted.map((p, index) => ({
+        id: p.Codigo || `atlas-${index}`,
+        titulo: p.Descripcion || "Sin título",
+        imagen_principal: p.Imagen || "https://via.placeholder.com/200",
+        url: p.url || "#",
+        cant_noches: parseInt(p.Noches || 0, 10),
+        doble_precio: parseFloat(p.Precio || 0),
+        destinoCiudad: p.Ciudad || "Desconocido",
+        destinoPais: p.Pais || "Desconocido",
+        rawData: p,
+        proveedor: "ATLAS",
+      }));
+    } catch (err) {
+      console.error("Error cargando paquetes Atlas:", err);
+      return [];
+    }
+  };
+
+  // ---------------------------
+  // 2️⃣ fetchProducts (AllSeason + Atlas)
+  // ---------------------------
   const fetchProducts = async () => {
     setLoading(true);
     setError(null);
 
     try {
+      // --- AllSeason (tu código original) ---
       const res = await fetch(
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         { method: "GET" }
       );
       const data = await res.json();
-      console.log("Datos recibidos:", data);
 
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
-      const processedProducts = formatted
+      const processedAllSeason = formatted
         .filter((p) => p && p.titulo)
         .map((p, index) => ({
           id: p.paquete_externo_id || `package-${index}`,
@@ -46,28 +93,35 @@ function App() {
             p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
           destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
           rawData: p,
+          proveedor: "ALLSEASON",
         }));
 
-      setProducts(processedProducts);
+      // --- Atlas ---
+      const processedAtlas = await fetchAtlas();
+
+      // --- Combinar ambos ---
+      const combinedProducts = [...processedAllSeason, ...processedAtlas];
+
+      setProducts(combinedProducts);
       setResultsInfo({
-        results: processedProducts.length,
-        total: processedProducts.length,
+        results: combinedProducts.length,
+        total: combinedProducts.length,
       });
- setShowAll(false);
-      const processedImages = formatted
+
+      // Carousel (tomar las primeras 7 imágenes)
+      const processedImages = combinedProducts
         .filter((p) => p && p.imagen_principal)
         .slice(0, 7)
         .map((p, index) => ({
-          id: p.paquete_externo_id || `image-${index}`,
+          id: p.id || `image-${index}`,
           url: p.imagen_principal,
-          titulo:
-            p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
+          titulo: p.titulo,
           descripcion: "",
-          alt:
-            p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
+          alt: p.titulo,
         }));
 
       setImages(processedImages);
+      setShowAll(false);
     } catch (err) {
       console.error("Error cargando productos:", err);
       setError(`Error al cargar productos: ${err.message}`);
@@ -82,7 +136,9 @@ function App() {
     fetchProducts();
   }, []);
 
-  // 🔍 Función de búsqueda mejorada con todos los filtros
+  // ---------------------------
+  // 3️⃣ handleSearch (AllSeason + Atlas)
+  // ---------------------------
   const handleSearch = async (filters) => {
     console.log("🔍 USANDO FILTRO COMPLETO EN REACT");
     console.log("Filtros aplicados:", filters);
@@ -90,7 +146,7 @@ function App() {
     setError(null);
 
     try {
-      // 1. Obtener TODOS los paquetes sin filtro
+      // --- AllSeason ---
       const res = await fetch(
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         {
@@ -100,43 +156,35 @@ function App() {
             Accept: "application/json",
           },
           body: JSON.stringify({
-            destino: "",
-            fecha: "",
-            salida: "",
+            destino: filters.destino || "",
+            fecha: filters.fecha || "",
+            salida: filters.salida || "",
             viajeros: "2 adultos",
             tipo: "paquetes",
-            buscar: false,
+            buscar: true,
           }),
         }
       );
 
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
-
       const data = await res.json();
+
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
-      const totalCount = formatted.length;
 
-      console.log("🔍 Total de paquetes antes del filtro:", totalCount);
-
-      // 2. APLICAR TODOS LOS FILTROS
+      // --- Aplicar filtros AllSeason ---
       let paquetesFiltrados = formatted;
-
-      // Filtro por destino
-      if (filters.destino && filters.destino.trim() !== "") {
+      if (filters.destino) {
         const destinoBuscado = filters.destino.toLowerCase();
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const destinos = paquete.destinos?.destino;
+        paquetesFiltrados = paquetesFiltrados.filter((p) => {
+          const destinos = p.destinos?.destino;
           if (!destinos) return false;
-
           if (Array.isArray(destinos)) {
-            return destinos.some((dest) => {
-              const ciudad = (dest.ciudad || "").toLowerCase();
-              const pais = (dest.pais || "").toLowerCase();
-              return (
-                ciudad.includes(destinoBuscado) || pais.includes(destinoBuscado)
-              );
-            });
+            return destinos.some(
+              (d) =>
+                (d.ciudad || "").toLowerCase().includes(destinoBuscado) ||
+                (d.pais || "").toLowerCase().includes(destinoBuscado)
+            );
           } else {
             const ciudad = (destinos.ciudad || "").toLowerCase();
             const pais = (destinos.pais || "").toLowerCase();
@@ -145,115 +193,54 @@ function App() {
             );
           }
         });
-        console.log(
-          `✅ Filtro destino "${filters.destino}": ${paquetesFiltrados.length} paquetes`
-        );
       }
-
-      // Filtro por salida (origen)
-      if (filters.salida && filters.salida.trim() !== "") {
+      if (filters.salida) {
         const salidaBuscada = filters.salida.toLowerCase();
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const origen = (paquete.origen || "").toLowerCase();
-          return origen.includes(salidaBuscada);
-        });
-        console.log(
-          `✅ Filtro salida "${filters.salida}": ${paquetesFiltrados.length} paquetes`
+        paquetesFiltrados = paquetesFiltrados.filter((p) =>
+          (p.origen || "").toLowerCase().includes(salidaBuscada)
         );
       }
-
-      // Filtro por fecha
-      if (filters.fecha && filters.fecha.trim() !== "") {
+      if (filters.fecha) {
         const fechaBuscada = filters.fecha;
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const salidas = paquete.salidas?.salida;
+        paquetesFiltrados = paquetesFiltrados.filter((p) => {
+          const salidas = p.salidas?.salida;
           if (!salidas) return false;
-
           if (Array.isArray(salidas)) {
-            return salidas.some((salida) => {
-              const fechaDesde = salida.fecha_desde || "";
-              const fechaHasta = salida.fecha_hasta || "";
-              return (
-                fechaDesde.includes(fechaBuscada) ||
-                fechaHasta.includes(fechaBuscada)
-              );
-            });
+            return salidas.some(
+              (s) =>
+                (s.fecha_desde || "").includes(fechaBuscada) ||
+                (s.fecha_hasta || "").includes(fechaBuscada)
+            );
           } else {
-            const fechaDesde = salidas.fecha_desde || "";
-            const fechaHasta = salidas.fecha_hasta || "";
+            const s = salidas;
             return (
-              fechaDesde.includes(fechaBuscada) ||
-              fechaHasta.includes(fechaBuscada)
+              (s.fecha_desde || "").includes(fechaBuscada) ||
+              (s.fecha_hasta || "").includes(fechaBuscada)
             );
           }
         });
-        console.log(
-          `✅ Filtro fecha "${filters.fecha}": ${paquetesFiltrados.length} paquetes`
-        );
       }
-
-      // 🆕 Filtro por precio mínimo
-      if (filters.precioMin && filters.precioMin.trim() !== "") {
-        const precioMin = parseFloat(filters.precioMin);
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const precio = parseFloat(paquete.doble_precio || 0);
-          return precio >= precioMin;
-        });
-        console.log(
-          `✅ Filtro precio mínimo ${precioMin}: ${paquetesFiltrados.length} paquetes`
+      // Filtros de precio y duración
+      if (filters.precioMin)
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (p) =>
+            parseFloat(p.doble_precio || 0) >= parseFloat(filters.precioMin)
         );
-      }
-
-      // 🆕 Filtro por precio máximo
-      if (filters.precioMax && filters.precioMax.trim() !== "") {
-        const precioMax = parseFloat(filters.precioMax);
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const precio = parseFloat(paquete.doble_precio || 0);
-          return precio <= precioMax;
-        });
-        console.log(
-          `✅ Filtro precio máximo ${precioMax}: ${paquetesFiltrados.length} paquetes`
+      if (filters.precioMax)
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (p) =>
+            parseFloat(p.doble_precio || 0) <= parseFloat(filters.precioMax)
         );
-      }
-
-      // 🆕 Filtro por duración mínima (noches)
-      if (filters.duracionMin && filters.duracionMin.trim() !== "") {
-        const duracionMin = parseInt(filters.duracionMin);
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const noches = parseInt(paquete.cant_noches || 0);
-          return noches >= duracionMin;
-        });
-        console.log(
-          `✅ Filtro duración mínima ${duracionMin} noches: ${paquetesFiltrados.length} paquetes`
+      if (filters.duracionMin)
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (p) => parseInt(p.cant_noches || 0) >= parseInt(filters.duracionMin)
         );
-      }
-
-      // 🆕 Filtro por duración máxima (noches)
-      if (filters.duracionMax && filters.duracionMax.trim() !== "") {
-        const duracionMax = parseInt(filters.duracionMax);
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const noches = parseInt(paquete.cant_noches || 0);
-          return noches <= duracionMax;
-        });
-        console.log(
-          `✅ Filtro duración máxima ${duracionMax} noches: ${paquetesFiltrados.length} paquetes`
+      if (filters.duracionMax)
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (p) => parseInt(p.cant_noches || 0) <= parseInt(filters.duracionMax)
         );
-      }
 
-      const resultsCount = paquetesFiltrados.length;
-      console.log(
-        "🎯 RESULTADO FINAL:",
-        resultsCount,
-        "de",
-        totalCount,
-        "paquetes"
-      );
-
-      // 3. Actualizar información de resultados
-      setResultsInfo({ results: resultsCount, total: totalCount });
-
-      // 4. Procesar productos filtrados
-      const processedProducts = paquetesFiltrados
+      const processedAllSeason = paquetesFiltrados
         .filter((p) => p && p.titulo)
         .map((p, index) => ({
           id: p.paquete_externo_id || `package-${index}`,
@@ -267,38 +254,39 @@ function App() {
             p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
           destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
           rawData: p,
+          proveedor: "ALLSEASON",
         }));
 
-      setProducts(processedProducts);
- setShowAll(true);
-      // 5. Mensajes mejorados cuando no hay resultados
-      if (processedProducts.length === 0) {
-        const activeFilters = Object.entries(filters)
-          .filter(
-            ([key, value]) => value && value.trim() !== "" && key !== "tipo"
-          )
-          .map(([key, value]) => {
-            const filterNames = {
-              destino: "Destino",
-              salida: "Salida",
-              fecha: "Fecha",
-              precioMin: "Precio mínimo",
-              precioMax: "Precio máximo",
-              duracionMin: "Duración mínima",
-              duracionMax: "Duración máxima",
-            };
-            return `${filterNames[key] || key}: ${value}`;
-          });
+      // --- Atlas con filtros ---
+      const processedAtlas = await fetchAtlas(filters);
 
-        if (activeFilters.length > 0) {
-          setError(
-            `No se encontraron paquetes que coincidan con los filtros aplicados:\n\n${activeFilters.join(
-              "\n"
-            )}\n\nIntenta ajustar o eliminar algunos filtros para ver más resultados.`
-          );
-        } else {
-          setError("No se encontraron paquetes disponibles en este momento.");
-        }
+      // --- Combinar ---
+      const combinedProducts = [...processedAllSeason, ...processedAtlas];
+
+      setProducts(combinedProducts);
+      setResultsInfo({
+        results: combinedProducts.length,
+        total: combinedProducts.length,
+      });
+
+      const processedImages = combinedProducts
+        .filter((p) => p && p.imagen_principal)
+        .slice(0, 7)
+        .map((p, index) => ({
+          id: p.id || `image-${index}`,
+          url: p.imagen_principal,
+          titulo: p.titulo,
+          descripcion: "",
+          alt: p.titulo,
+        }));
+
+      setImages(processedImages);
+      setShowAll(true);
+
+      if (combinedProducts.length === 0) {
+        setError(
+          "No se encontraron paquetes disponibles con los filtros aplicados."
+        );
       }
     } catch (err) {
       console.error("Error al buscar paquetes:", err);
@@ -308,7 +296,9 @@ function App() {
     }
   };
 
-  // 🔄 Función reset para mostrar todos los paquetes
+  // ---------------------------
+  // 4️⃣ Reset
+  // ---------------------------
   const handleReset = async () => {
     await fetchProducts();
   };
@@ -334,31 +324,22 @@ function App() {
 
   return (
     <>
-      {/* Navbar fija */}
       <Navbar cart={cart} removeFromCart={removeFromCart} />
-
-      {/* Inicio */}
       <div id="inicio">
         <CarouselList images={images} />
       </div>
-
       <SearchBar
         onSearch={handleSearch}
         onReset={handleReset}
         resultsCount={resultsInfo.results}
         totalCount={resultsInfo.total}
       />
-
-      {/* Paquetes */}
       <main id="paquetes" className="main-content">
-       
-
         <ProductList
           products={showAll ? products : products.slice(0, 10)}
           addToCart={addToCart}
           onSelect={(product) => setSelectedProduct(product)}
         />
-
         {products.length > 10 && (
           <div style={{ textAlign: "center", marginTop: "20px" }}>
             <button
@@ -378,22 +359,17 @@ function App() {
           </div>
         )}
       </main>
-
-      {/* Modal producto */}
       {selectedProduct && (
         <Modal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
         />
       )}
-
-      {/* Footer */}
       <footer id="contacto">
         <Footer />
       </footer>
     </>
   );
-
 }
 
 export default App;
