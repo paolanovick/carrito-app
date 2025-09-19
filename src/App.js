@@ -83,17 +83,7 @@ function App() {
   }, []);
 
   // 🔍 Función de búsqueda mejorada con todos los filtros
-  // ✅ Función auxiliar segura para parsear JSON
-  const safeJson = async (res) => {
-    const text = await res.text();
-    if (!text) return null;
-    try {
-      return JSON.parse(text);
-    } catch (err) {
-      console.error("❌ Error al parsear JSON:", err);
-      return null;
-    }
-  };
+
 
   // 🔍 Función de búsqueda mejorada con todos los filtros
 const handleSearch = async (filters) => {
@@ -104,15 +94,18 @@ const handleSearch = async (filters) => {
 
   try {
     // 1. Obtener TODOS los paquetes sin filtro (usando GET)
-    const res = await fetch(
-      "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-      }
-    );
+  const res = await fetch(
+    "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(filters),
+      // <- body va aquí, no en headers
+    }
+  );
 
     if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
