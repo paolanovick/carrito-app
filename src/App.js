@@ -19,47 +19,56 @@ function App() {
   // ---------------------------
   // 1️⃣ Función para traer Atlas
   // ---------------------------
-  const fetchAtlas = async (filters = {}) => {
-    try {
-      const res = await fetch(
-        "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            origen: filters.salida || "",
-            destino: filters.destino || "",
-            fechaIda: filters.fecha || "",
-          }),
-        }
-      );
+ const fetchAtlas = async (filters = {}) => {
+   try {
+     const res = await fetch(
+       "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api/atlas",
+       {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({
+           origen: filters.salida || "",
+           destino: filters.destino || "",
+           fechaIda: filters.fecha || "",
+         }),
+       }
+     );
 
-      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
-      const data = await res.json();
+     const text = await res.text(); // primero lo convertimos a texto
+     if (!text) return []; // si viene vacío, devolvemos array vacío
 
-      const paquetes = data?.WSProducto || [];
-      const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
+     let data;
+     try {
+       data = JSON.parse(text);
+     } catch (err) {
+       console.error("Error parseando JSON Atlas:", err, text);
+       return [];
+     }
 
-      return formatted.map((p, index) => ({
-        id: p.Codigo || `atlas-${index}`,
-        titulo: p.Descripcion || "Sin título",
-        imagen_principal: p.Imagen || "https://via.placeholder.com/200",
-        url: p.url || "#",
-        cant_noches: parseInt(p.Noches || 0, 10),
-        doble_precio: parseFloat(p.Precio || 0),
-        destinoCiudad: p.Ciudad || "Desconocido",
-        destinoPais: p.Pais || "Desconocido",
-        rawData: p,
-        proveedor: "ATLAS",
-      }));
-    } catch (err) {
-      console.error("Error cargando paquetes Atlas:", err);
-      return [];
-    }
-  };
+     const paquetesRaw = data?.WSProducto || [];
+     const paquetesArray = Array.isArray(paquetesRaw)
+       ? paquetesRaw
+       : [paquetesRaw];
+
+     return paquetesArray.map((paquete) => ({
+       id: paquete.Codigo || `atlas-${Date.now()}`,
+       titulo: (paquete.Descripcion || "Sin título")
+         .replace(/<[^>]*>/g, "")
+         .trim(),
+       imagen_principal: paquete.Imagen || "https://via.placeholder.com/200",
+       url: "#",
+       cant_noches: parseInt(paquete.Noches || 0),
+       doble_precio: parseFloat(paquete.Precio || 0),
+       destinoCiudad: paquete.Ciudad || "Desconocido",
+       destinoPais: paquete.Pais || "Desconocido",
+       rawData: paquete,
+     }));
+   } catch (err) {
+     console.error("Error cargando paquetes Atlas:", err);
+     return [];
+   }
+ };
+
 
   // ---------------------------
   // 2️⃣ fetchProducts (AllSeason + Atlas)
