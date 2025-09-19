@@ -41,13 +41,13 @@ const Navbar = ({ cart, removeFromCart, addProductToList }) => {
           )}
         </li>
 
-        {/* Dashboard */}
+        {/* Dashboard Atlas */}
         <li
           className="dashboard-item"
-          onClick={() => setShowDashboard((prev) => !prev)}
           style={{ cursor: "pointer", position: "relative" }}
         >
-          Dashboard
+          <div onClick={() => setShowDashboard((prev) => !prev)}>Dashboard</div>
+
           {showDashboard && (
             <div
               style={{
@@ -67,7 +67,45 @@ const Navbar = ({ cart, removeFromCart, addProductToList }) => {
                 flexDirection: "column",
               }}
             >
-              <AtlasForm onNewPackage={addProductToList} />
+              {/* AtlasForm con onNewPackage */}
+              <AtlasForm
+                onNewPackage={async (newPackage) => {
+                  try {
+                    const res = await fetch(
+                      "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api/atlas",
+                      {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(newPackage),
+                      }
+                    );
+
+                    if (!res.ok) throw new Error("Error al enviar paquete");
+
+                    const createdPackage = await res.json();
+
+                    // ✅ Agregar el paquete a la lista de productos de App.js
+                    addProductToList({
+                      id:
+                        createdPackage.paquete_externo_id ||
+                        `package-${Date.now()}`,
+                      titulo: createdPackage.titulo,
+                      imagen_principal:
+                        createdPackage.imagen ||
+                        "https://via.placeholder.com/200",
+                      cant_noches: parseInt(createdPackage.noches || 0),
+                      doble_precio: parseFloat(createdPackage.precio || 0),
+                      destinoCiudad:
+                        createdPackage.destinoCiudad || "Desconocido",
+                      destinoPais: createdPackage.destinoPais || "Desconocido",
+                      proveedor: createdPackage.proveedor || "DESCONOCIDO",
+                      rawData: createdPackage,
+                    });
+                  } catch (err) {
+                    console.error("Error al crear paquete:", err);
+                  }
+                }}
+              />
             </div>
           )}
         </li>
