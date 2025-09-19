@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Cart from "./Cart";
 import AtlasForm from "./dashboard/AtlasForm";
 
-const Navbar = ({ cart, removeFromCart }) => {
+const Navbar = ({ cart, removeFromCart, addProductToList }) => {
   const [showCart, setShowCart] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
 
@@ -45,7 +45,7 @@ const Navbar = ({ cart, removeFromCart }) => {
         <li
           className="dashboard-item"
           onClick={() => setShowDashboard((prev) => !prev)}
-          style={{ cursor: "pointer" }}
+          style={{ cursor: "pointer", position: "relative" }} // necesario para que el dropdown se posicione bien
         >
           Dashboard
           {showDashboard && (
@@ -53,7 +53,7 @@ const Navbar = ({ cart, removeFromCart }) => {
               style={{
                 position: "absolute",
                 top: "50px",
-                right: "10px",
+                right: "0",
                 width: "400px",
                 maxHeight: "80vh",
                 overflowY: "auto",
@@ -63,9 +63,11 @@ const Navbar = ({ cart, removeFromCart }) => {
                 padding: "15px",
                 zIndex: 1000,
                 boxShadow: "0 0 15px rgba(0,0,0,0.3)",
+                display: "flex",
+                flexDirection: "column", // para que los inputs no se contraigan
               }}
             >
-              <AtlasForm />
+              <AtlasForm onNewPackage={addProductToList} />
             </div>
           )}
         </li>

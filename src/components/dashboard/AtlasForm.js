@@ -16,6 +16,7 @@ const AtlasForm = ({ onNewPackage }) => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setSuccess(false); // limpiar mensaje de éxito al editar
   };
 
   const handleSubmit = async (e) => {
@@ -25,7 +26,6 @@ const AtlasForm = ({ onNewPackage }) => {
     setSuccess(false);
 
     try {
-      // POST a tu endpoint de Atlas (n8n)
       const res = await fetch(
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api/atlas",
         {
@@ -35,12 +35,34 @@ const AtlasForm = ({ onNewPackage }) => {
         }
       );
 
-      if (!res.ok) throw new Error("Error al crear paquete Atlas");
+      if (!res.ok) throw new Error("Error al enviar paquete a n8n");
 
-      // Notificar al App.js que se agregó un nuevo paquete
-      onNewPackage && onNewPackage();
+      const createdPackage = await res.json();
 
-      // Limpiar form
+      // Llamamos a la función de App.js para agregar el producto
+      onNewPackage &&
+        onNewPackage({
+          id: createdPackage.paquete_externo_id || `package-${Date.now()}`,
+          titulo: createdPackage.titulo || formData.titulo,
+          imagen_principal:
+            createdPackage.imagen ||
+            formData.imagen ||
+            "https://via.placeholder.com/200",
+          cant_noches: parseInt(createdPackage.noches || formData.noches || 0),
+          doble_precio: parseFloat(
+            createdPackage.precio || formData.precio || 0
+          ),
+          destinoCiudad:
+            createdPackage.destinoCiudad ||
+            formData.destinoCiudad ||
+            "Desconocido",
+          destinoPais:
+            createdPackage.destinoPais || formData.destinoPais || "Desconocido",
+          proveedor: createdPackage.proveedor || "DESCONOCIDO",
+          rawData: createdPackage,
+        });
+
+      setSuccess(true);
       setFormData({
         titulo: "",
         descripcion: "",
@@ -50,9 +72,8 @@ const AtlasForm = ({ onNewPackage }) => {
         destinoPais: "",
         noches: "",
       });
-
-      setSuccess(true);
     } catch (err) {
+      console.error(err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -62,7 +83,6 @@ const AtlasForm = ({ onNewPackage }) => {
   return (
     <form onSubmit={handleSubmit} className="atlas-form">
       <h3>Agregar Paquete Atlas</h3>
-
       {error && <p style={{ color: "red" }}>{error}</p>}
       {success && (
         <p style={{ color: "green" }}>Paquete agregado correctamente!</p>
@@ -82,7 +102,6 @@ const AtlasForm = ({ onNewPackage }) => {
         placeholder="Descripción"
         value={formData.descripcion}
         onChange={handleChange}
-        required
       />
       <input
         type="number"

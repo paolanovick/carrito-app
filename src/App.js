@@ -5,7 +5,7 @@ import ProductList from "./components/ProductList";
 import Footer from "./components/Footer";
 import Modal from "./components/Modal";
 import SearchBar from "./components/SearchBar";
-import AtlasForm from "./components/dashboard/AtlasForm"; // <-- Importa el form
+
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -171,10 +171,7 @@ function App() {
   const removeFromCart = (id) =>
     setCart((prev) => prev.filter((item) => item.id !== id));
 
-  // 🔹 Función para agregar paquete desde el AtlasForm
-  const handleNewPackage = (newPackage) => {
-    setProducts((prev) => [newPackage, ...prev]);
-  };
+
 
   if (loading)
     return (
@@ -193,18 +190,23 @@ function App() {
 
   return (
     <>
-      <Navbar cart={cart} removeFromCart={removeFromCart} />
+      <Navbar
+        cart={cart}
+        removeFromCart={removeFromCart}
+        addProductToList={(newProduct) =>
+          setProducts((prev) => [...prev, newProduct])
+        }
+      />
+
       <div id="inicio">
         <CarouselList images={images} />
       </div>
-
       <SearchBar
         onSearch={handleSearch}
         onReset={handleReset}
         resultsCount={resultsInfo.results}
         totalCount={resultsInfo.total}
       />
-
       <main id="paquetes" className="main-content">
         <ProductList
           products={showAll ? products : products.slice(0, 10)}
@@ -231,23 +233,12 @@ function App() {
           </div>
         )}
       </main>
-
       {selectedProduct && (
         <Modal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
         />
       )}
-
-      {/* 🔹 Dashboard para agregar paquetes */}
-      <div
-        id="dashboard"
-        style={{ padding: "20px", backgroundColor: "#f5f5f5" }}
-      >
-        <h2>Dashboard de Administración</h2>
-        <AtlasForm onNewPackage={handleNewPackage} />
-      </div>
-
       <footer id="contacto">
         <Footer />
       </footer>
