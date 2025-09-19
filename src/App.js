@@ -26,8 +26,19 @@ function App() {
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         { method: "GET" }
       );
-      const data = await res.json();
-      console.log("Datos recibidos:", data);
+     const text = await res.text();
+     console.log("Respuesta cruda de la API:", text);
+
+     let data;
+     try {
+       data = JSON.parse(text);
+     } catch (err) {
+       console.error("Error parseando JSON:", err);
+       setError("La API no devolvió datos válidos.");
+       setLoading(false);
+       return;
+     }
+
 
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
@@ -112,14 +123,27 @@ function App() {
 
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
-      const data = await res.json();
+      // 🔹 Cambiado a texto y parseo seguro
+      const text = await res.text();
+      console.log("Respuesta cruda de la API (handleSearch):", text);
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.error("Error parseando JSON en handleSearch:", err);
+        setError("La API no devolvió datos válidos.");
+        setLoading(false);
+        return;
+      }
+
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
       const totalCount = formatted.length;
 
       console.log("🔍 Total de paquetes antes del filtro:", totalCount);
 
-      // 2. APLICAR TODOS LOS FILTROS
+      // 2. Aplicar todos los filtros (igual que antes)
       let paquetesFiltrados = formatted;
 
       // Filtro por destino
@@ -150,7 +174,7 @@ function App() {
         );
       }
 
-      // Filtro por salida (origen)
+      // Filtro por salida
       if (filters.salida && filters.salida.trim() !== "") {
         const salidaBuscada = filters.salida.toLowerCase();
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -192,7 +216,7 @@ function App() {
         );
       }
 
-      // 🆕 Filtro por precio mínimo
+      // Filtro por precio mínimo
       if (filters.precioMin && filters.precioMin.trim() !== "") {
         const precioMin = parseFloat(filters.precioMin);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -204,7 +228,7 @@ function App() {
         );
       }
 
-      // 🆕 Filtro por precio máximo
+      // Filtro por precio máximo
       if (filters.precioMax && filters.precioMax.trim() !== "") {
         const precioMax = parseFloat(filters.precioMax);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -216,7 +240,7 @@ function App() {
         );
       }
 
-      // 🆕 Filtro por duración mínima (noches)
+      // Filtro por duración mínima
       if (filters.duracionMin && filters.duracionMin.trim() !== "") {
         const duracionMin = parseInt(filters.duracionMin);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -228,7 +252,7 @@ function App() {
         );
       }
 
-      // 🆕 Filtro por duración máxima (noches)
+      // Filtro por duración máxima
       if (filters.duracionMax && filters.duracionMax.trim() !== "") {
         const duracionMax = parseInt(filters.duracionMax);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -249,10 +273,9 @@ function App() {
         "paquetes"
       );
 
-      // 3. Actualizar información de resultados
+      // Actualizar resultados y productos
       setResultsInfo({ results: resultsCount, total: totalCount });
 
-      // 4. Procesar productos filtrados
       const processedProducts = paquetesFiltrados
         .filter((p) => p && p.titulo)
         .map((p, index) => ({
@@ -271,7 +294,7 @@ function App() {
 
       setProducts(processedProducts);
       setShowAll(true);
-      // 5. Mensajes mejorados cuando no hay resultados
+
       if (processedProducts.length === 0) {
         const activeFilters = Object.entries(filters)
           .filter(
@@ -307,6 +330,7 @@ function App() {
       setLoading(false);
     }
   };
+
 
   // 🔄 Función reset para mostrar todos los paquetes
   const handleReset = async () => {
