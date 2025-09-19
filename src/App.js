@@ -19,6 +19,7 @@ function App() {
   const [showAll, setShowAll] = useState(false);
 
   // 🔹 Cargar productos al inicio (AllSeason + Atlas vía n8n)
+  // 🔹 Cargar productos al inicio (AllSeason + Atlas vía n8n)
   const fetchProducts = async () => {
     setLoading(true);
     setError(null);
@@ -28,12 +29,23 @@ function App() {
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         { method: "GET" }
       );
+
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
-      const data = await res.json();
-      console.log("Datos recibidos (AllSeason + Atlas combinados):", data);
+      // Recibir como texto primero
+      const text = await res.text();
+      console.log("Datos recibidos (AllSeason + Atlas crudo):", text);
 
-      // 🔹 Tomamos los paquetes de la respuesta combinada de n8n
+      // Intentar parsear JSON seguro
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Error parseando JSON inicial:", e);
+        data = { paquetes: [] }; // fallback seguro
+      }
+
+      // Tomamos los paquetes de la respuesta combinada de n8n
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
@@ -94,6 +106,7 @@ function App() {
   }, []);
 
   // 🔍 Función de búsqueda con todos los filtros
+  // 🔍 Función de búsqueda segura
   const handleSearch = async (filters) => {
     setLoading(true);
     setError(null);
@@ -111,12 +124,24 @@ function App() {
         }
       );
 
-      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+      // Recibir como texto primero
+      const text = await res.text();
+      console.log("Respuesta cruda de la API:", text);
 
-      const data = await res.json();
+      // Intentar parsear JSON seguro
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Error parseando JSON:", e);
+        data = { paquetes: [] }; // fallback seguro
+      }
+
+      // Tomar los paquetes
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
+      // Procesar productos
       const processedProducts = formatted
         .filter((p) => p && (p.titulo || p.nombre))
         .map((p, index) => ({
@@ -145,6 +170,7 @@ function App() {
       });
       setShowAll(true);
 
+      // Preparar imágenes para carousel
       const processedImages = processedProducts
         .filter((p) => p && p.imagen_principal)
         .slice(0, 7)
@@ -239,7 +265,6 @@ function App() {
           onClose={() => setSelectedProduct(null)}
         />
       )}
-    
 
       <footer id="contacto">
         <Footer />
