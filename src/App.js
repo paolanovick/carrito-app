@@ -16,7 +16,7 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
-  // 🔹 Función para formatear paquetes
+  // 🔹 Función para formatear los paquetes
   const formatPackages = (paquetes) => {
     const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
     return formatted
@@ -52,19 +52,15 @@ function App() {
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
       const text = await res.text();
-      let data = { paquetes: [] }; // fallback por defecto
-
-      if (text && text.trim() !== "") {
-        try {
-          data = JSON.parse(text);
-        } catch (err) {
-          console.warn(
-            "JSON malformado al cargar productos, usando fallback",
-            err
-          );
-        }
-      } else {
-        console.warn("La API devolvió respuesta vacía al cargar productos");
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.warn(
+          "JSON malformado al cargar productos, usando fallback:",
+          err
+        );
+        data = { paquetes: [] };
       }
 
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
@@ -99,17 +95,26 @@ function App() {
     }
   }, []);
 
-  // 🔹 useEffect seguro
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
-  // 🔍 Función de búsqueda con filtros y fallback
+  // 🔍 Función de búsqueda con filtros
   const handleSearch = async (filters) => {
     setLoading(true);
     setError(null);
 
     try {
+      // 🔹 Transformar los filtros al formato que espera la API
+      const body = {
+        destino: filters.destino || "",
+        fecha: filters.fecha || "",
+        salida: filters.salida || "",
+        viajeros: filters.viajeros || "2 adultos",
+        tipo: "paquetes",
+        buscar: true,
+      };
+
       const res = await fetch(
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         {
@@ -118,26 +123,22 @@ function App() {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: JSON.stringify(filters),
+          body: JSON.stringify(body),
         }
       );
 
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
       const text = await res.text();
-      let data = { paquetes: [] }; // fallback por defecto
-
-      if (text && text.trim() !== "") {
-        try {
-          data = JSON.parse(text);
-        } catch (err) {
-          console.warn(
-            "JSON malformado al buscar paquetes, usando fallback",
-            err
-          );
-        }
-      } else {
-        console.warn("La API devolvió respuesta vacía al buscar paquetes");
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.warn(
+          "JSON malformado al buscar paquetes, usando fallback:",
+          err
+        );
+        data = { paquetes: [] };
       }
 
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
