@@ -16,109 +16,55 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
-  // ---------------------------
-  // 1️⃣ Función para traer Atlas
-  // ---------------------------
- const fetchAtlas = async (filters = {}) => {
-   try {
-     const res = await fetch(
-       "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api/atlas",
-       {
-         method: "POST",
-         headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({
-           origen: filters.salida || "",
-           destino: filters.destino || "",
-           fechaIda: filters.fecha || "",
-         }),
-       }
-     );
-
-     const text = await res.text(); // primero lo convertimos a texto
-     if (!text) return []; // si viene vacío, devolvemos array vacío
-
-     let data;
-     try {
-       data = JSON.parse(text);
-     } catch (err) {
-       console.error("Error parseando JSON Atlas:", err, text);
-       return [];
-     }
-
-     const paquetesRaw = data?.WSProducto || [];
-     const paquetesArray = Array.isArray(paquetesRaw)
-       ? paquetesRaw
-       : [paquetesRaw];
-
-     return paquetesArray.map((paquete) => ({
-       id: paquete.Codigo || `atlas-${Date.now()}`,
-       titulo: (paquete.Descripcion || "Sin título")
-         .replace(/<[^>]*>/g, "")
-         .trim(),
-       imagen_principal: paquete.Imagen || "https://via.placeholder.com/200",
-       url: "#",
-       cant_noches: parseInt(paquete.Noches || 0),
-       doble_precio: parseFloat(paquete.Precio || 0),
-       destinoCiudad: paquete.Ciudad || "Desconocido",
-       destinoPais: paquete.Pais || "Desconocido",
-       rawData: paquete,
-     }));
-   } catch (err) {
-     console.error("Error cargando paquetes Atlas:", err);
-     return [];
-   }
- };
-
-
-  // ---------------------------
-  // 2️⃣ fetchProducts (AllSeason + Atlas)
-  // ---------------------------
+  // 🔹 Cargar productos al inicio (AllSeason + Atlas vía n8n)
   const fetchProducts = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // --- AllSeason (tu código original) ---
       const res = await fetch(
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         { method: "GET" }
       );
-      const data = await res.json();
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
 
+      const data = await res.json();
+      console.log("Datos recibidos (AllSeason + Atlas combinados):", data);
+
+      // 🔹 Tomamos los paquetes de la respuesta combinada de n8n
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
-      const processedAllSeason = formatted
-        .filter((p) => p && p.titulo)
+      // 🔹 Formatear productos para React
+      const processedProducts = formatted
+        .filter((p) => p && (p.titulo || p.nombre))
         .map((p, index) => ({
-          id: p.paquete_externo_id || `package-${index}`,
-          titulo: p.titulo?.replace(/<[^>]*>/g, "").trim() || "Sin título",
+          id: p.paquete_externo_id || p.codigo || `package-${index}`,
+          titulo:
+            p.titulo?.replace(/<[^>]*>/g, "").trim() ||
+            p.nombre ||
+            "Sin título",
           imagen_principal:
-            p.imagen_principal || "https://via.placeholder.com/200",
+            p.imagen_principal || p.imagen || "https://via.placeholder.com/200",
           url: p.url?.trim() || "#",
-          cant_noches: parseInt(p.cant_noches) || 0,
+          cant_noches: parseInt(p.cant_noches || p.noches || 0),
           doble_precio: parseFloat(p.doble_precio || p.precio || 0),
           destinoCiudad:
-            p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
-          destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
+            p.destinos?.destino?.ciudad || p.destinoCiudad || "Desconocido",
+          destinoPais:
+            p.destinos?.destino?.pais || p.destinoPais || "Desconocido",
+          proveedor: p.proveedor || "DESCONOCIDO",
           rawData: p,
-          proveedor: "ALLSEASON",
         }));
 
-      // --- Atlas ---
-      const processedAtlas = await fetchAtlas();
-
-      // --- Combinar ambos ---
-      const combinedProducts = [...processedAllSeason, ...processedAtlas];
-
-      setProducts(combinedProducts);
+      setProducts(processedProducts);
       setResultsInfo({
-        results: combinedProducts.length,
-        total: combinedProducts.length,
+        results: processedProducts.length,
+        total: processedProducts.length,
       });
 
-      // Carousel (tomar las primeras 7 imágenes)
-      const processedImages = combinedProducts
+      // 🔹 Imágenes para el carousel
+      const processedImages = processedProducts
         .filter((p) => p && p.imagen_principal)
         .slice(0, 7)
         .map((p, index) => ({
@@ -145,17 +91,12 @@ function App() {
     fetchProducts();
   }, []);
 
-  // ---------------------------
-  // 3️⃣ handleSearch (AllSeason + Atlas)
-  // ---------------------------
+  // 🔍 Función de búsqueda con todos los filtros
   const handleSearch = async (filters) => {
-    console.log("🔍 USANDO FILTRO COMPLETO EN REACT");
-    console.log("Filtros aplicados:", filters);
     setLoading(true);
     setError(null);
 
     try {
-      // --- AllSeason ---
       const res = await fetch(
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         {
@@ -164,121 +105,45 @@ function App() {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: JSON.stringify({
-            destino: filters.destino || "",
-            fecha: filters.fecha || "",
-            salida: filters.salida || "",
-            viajeros: "2 adultos",
-            tipo: "paquetes",
-            buscar: true,
-          }),
+          body: JSON.stringify(filters),
         }
       );
 
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
-      const data = await res.json();
 
+      const data = await res.json();
       const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
-      // --- Aplicar filtros AllSeason ---
-      let paquetesFiltrados = formatted;
-      if (filters.destino) {
-        const destinoBuscado = filters.destino.toLowerCase();
-        paquetesFiltrados = paquetesFiltrados.filter((p) => {
-          const destinos = p.destinos?.destino;
-          if (!destinos) return false;
-          if (Array.isArray(destinos)) {
-            return destinos.some(
-              (d) =>
-                (d.ciudad || "").toLowerCase().includes(destinoBuscado) ||
-                (d.pais || "").toLowerCase().includes(destinoBuscado)
-            );
-          } else {
-            const ciudad = (destinos.ciudad || "").toLowerCase();
-            const pais = (destinos.pais || "").toLowerCase();
-            return (
-              ciudad.includes(destinoBuscado) || pais.includes(destinoBuscado)
-            );
-          }
-        });
-      }
-      if (filters.salida) {
-        const salidaBuscada = filters.salida.toLowerCase();
-        paquetesFiltrados = paquetesFiltrados.filter((p) =>
-          (p.origen || "").toLowerCase().includes(salidaBuscada)
-        );
-      }
-      if (filters.fecha) {
-        const fechaBuscada = filters.fecha;
-        paquetesFiltrados = paquetesFiltrados.filter((p) => {
-          const salidas = p.salidas?.salida;
-          if (!salidas) return false;
-          if (Array.isArray(salidas)) {
-            return salidas.some(
-              (s) =>
-                (s.fecha_desde || "").includes(fechaBuscada) ||
-                (s.fecha_hasta || "").includes(fechaBuscada)
-            );
-          } else {
-            const s = salidas;
-            return (
-              (s.fecha_desde || "").includes(fechaBuscada) ||
-              (s.fecha_hasta || "").includes(fechaBuscada)
-            );
-          }
-        });
-      }
-      // Filtros de precio y duración
-      if (filters.precioMin)
-        paquetesFiltrados = paquetesFiltrados.filter(
-          (p) =>
-            parseFloat(p.doble_precio || 0) >= parseFloat(filters.precioMin)
-        );
-      if (filters.precioMax)
-        paquetesFiltrados = paquetesFiltrados.filter(
-          (p) =>
-            parseFloat(p.doble_precio || 0) <= parseFloat(filters.precioMax)
-        );
-      if (filters.duracionMin)
-        paquetesFiltrados = paquetesFiltrados.filter(
-          (p) => parseInt(p.cant_noches || 0) >= parseInt(filters.duracionMin)
-        );
-      if (filters.duracionMax)
-        paquetesFiltrados = paquetesFiltrados.filter(
-          (p) => parseInt(p.cant_noches || 0) <= parseInt(filters.duracionMax)
-        );
-
-      const processedAllSeason = paquetesFiltrados
-        .filter((p) => p && p.titulo)
+      const processedProducts = formatted
+        .filter((p) => p && (p.titulo || p.nombre))
         .map((p, index) => ({
-          id: p.paquete_externo_id || `package-${index}`,
-          titulo: p.titulo?.replace(/<[^>]*>/g, "").trim() || "Sin título",
+          id: p.paquete_externo_id || p.codigo || `package-${index}`,
+          titulo:
+            p.titulo?.replace(/<[^>]*>/g, "").trim() ||
+            p.nombre ||
+            "Sin título",
           imagen_principal:
-            p.imagen_principal || "https://via.placeholder.com/200",
+            p.imagen_principal || p.imagen || "https://via.placeholder.com/200",
           url: p.url?.trim() || "#",
-          cant_noches: parseInt(p.cant_noches) || 0,
+          cant_noches: parseInt(p.cant_noches || p.noches || 0),
           doble_precio: parseFloat(p.doble_precio || p.precio || 0),
           destinoCiudad:
-            p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
-          destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
+            p.destinos?.destino?.ciudad || p.destinoCiudad || "Desconocido",
+          destinoPais:
+            p.destinos?.destino?.pais || p.destinoPais || "Desconocido",
+          proveedor: p.proveedor || "DESCONOCIDO",
           rawData: p,
-          proveedor: "ALLSEASON",
         }));
 
-      // --- Atlas con filtros ---
-      const processedAtlas = await fetchAtlas(filters);
-
-      // --- Combinar ---
-      const combinedProducts = [...processedAllSeason, ...processedAtlas];
-
-      setProducts(combinedProducts);
+      setProducts(processedProducts);
       setResultsInfo({
-        results: combinedProducts.length,
-        total: combinedProducts.length,
+        results: processedProducts.length,
+        total: processedProducts.length,
       });
+      setShowAll(true);
 
-      const processedImages = combinedProducts
+      const processedImages = processedProducts
         .filter((p) => p && p.imagen_principal)
         .slice(0, 7)
         .map((p, index) => ({
@@ -290,12 +155,9 @@ function App() {
         }));
 
       setImages(processedImages);
-      setShowAll(true);
 
-      if (combinedProducts.length === 0) {
-        setError(
-          "No se encontraron paquetes disponibles con los filtros aplicados."
-        );
+      if (processedProducts.length === 0) {
+        setError("No se encontraron paquetes con los filtros aplicados.");
       }
     } catch (err) {
       console.error("Error al buscar paquetes:", err);
@@ -305,9 +167,6 @@ function App() {
     }
   };
 
-  // ---------------------------
-  // 4️⃣ Reset
-  // ---------------------------
   const handleReset = async () => {
     await fetchProducts();
   };
@@ -337,18 +196,21 @@ function App() {
       <div id="inicio">
         <CarouselList images={images} />
       </div>
+
       <SearchBar
         onSearch={handleSearch}
         onReset={handleReset}
         resultsCount={resultsInfo.results}
         totalCount={resultsInfo.total}
       />
+
       <main id="paquetes" className="main-content">
         <ProductList
           products={showAll ? products : products.slice(0, 10)}
           addToCart={addToCart}
           onSelect={(product) => setSelectedProduct(product)}
         />
+
         {products.length > 10 && (
           <div style={{ textAlign: "center", marginTop: "20px" }}>
             <button
@@ -368,12 +230,14 @@ function App() {
           </div>
         )}
       </main>
+
       {selectedProduct && (
         <Modal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
         />
       )}
+
       <footer id="contacto">
         <Footer />
       </footer>
