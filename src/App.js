@@ -239,10 +239,7 @@ function App() {
           onClose={() => setSelectedProduct(null)}
         />
       )}
-      <div id="dashboard">
-        <h1>Dashboard de Administración</h1>
-        <AtlasForm onNewPackage={fetchProducts} />
-      </div>
+    
 
       <footer id="contacto">
         <Footer />
