@@ -113,21 +113,25 @@ const Footer = () => {
             <div className="footer-column">
               <h3>Secciones</h3>
               <a href="#inicio">Inicio</a>
-              <a href="#nosotros">Paquetes</a>
+              <a href="#paquetes">Paquetes</a>
               <a href="#contacto">Contacto</a>
             </div>
 
             <div className="footer-column">
               <h3>Contáctenos</h3>
               <a href="#contacto">Contacto Comercial</a>
-              <a href="/privacidad" target="_blank" rel="noopener noreferrer">
+              <a
+                href="privacidad.html"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Política de Privacidad
               </a>
-              <a href="/legales" target="_blank" rel="noopener noreferrer">
+              <a href="legales.html" target="_blank" rel="noopener noreferrer">
                 Legales
               </a>
-              <a href="/terminos" target="_blank" rel="noopener noreferrer">
-                Términos &amp; Condiciones
+              <a href="terminos.html" target="_blank" rel="noopener noreferrer">
+                Términos & Condiciones
               </a>
             </div>
 
