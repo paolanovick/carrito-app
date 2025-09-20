@@ -16,77 +16,81 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
-  const fetchProducts = async () => {
-    setLoading(true);
-    setError(null);
+ const fetchProducts = async () => {
+   setLoading(true);
+   setError(null);
 
-    try {
-      const res = await fetch(
-        "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
-        {
-          method: "GET",
-        }
-      );
+   try {
+     const res = await fetch(
+       "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
+       {
+         method: "GET",
+         headers: {
+           Accept: "application/json",
+         },
+       }
+     );
 
-      if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
+     if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
-      let data = {};
-      const text = await res.text();
-      if (text) {
-        data = JSON.parse(text);
-      } else {
-        throw new Error("Respuesta vacía del servidor.");
-      }
+     let data = {};
+     const text = await res.text();
+     if (text) {
+       data = JSON.parse(text);
+     } else {
+       throw new Error("Respuesta vacía del servidor.");
+     }
 
-      const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
-      const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
+     // El webhook devuelve { paquetes: [...] } según tu configuración
+     const paquetes = data?.paquetes || [];
+     const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
-      const processedProducts = formatted
-        .filter((p) => p && p.titulo)
-        .map((p, index) => ({
-          id: p.paquete_externo_id || `package-${index}`,
-          titulo: p.titulo?.replace(/<[^>]*>/g, "").trim() || "Sin título",
-          imagen_principal:
-            p.imagen_principal || "https://via.placeholder.com/200",
-          url: p.url?.trim() || "#",
-          cant_noches: parseInt(p.cant_noches) || 0,
-          doble_precio: parseFloat(p.doble_precio || p.precio || 0),
-          destinoCiudad:
-            p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
-          destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
-          rawData: p,
-        }));
+     const processedProducts = formatted
+       .filter((p) => p && p.titulo)
+       .map((p, index) => ({
+         id: p.paquete_externo_id || `package-${index}`,
+         titulo: p.titulo?.replace(/<[^>]*>/g, "").trim() || "Sin título",
+         imagen_principal:
+           p.imagen_principal || "https://via.placeholder.com/200",
+         url: p.url?.trim() || "#",
+         cant_noches: parseInt(p.cant_noches) || 0,
+         doble_precio: parseFloat(p.doble_precio || p.precio || 0),
+         destinoCiudad:
+           p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
+         destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
+         rawData: p,
+       }));
 
-      setProducts(processedProducts);
-      setResultsInfo({
-        results: processedProducts.length,
-        total: processedProducts.length,
-      });
-      setShowAll(false);
+     setProducts(processedProducts);
+     setResultsInfo({
+       results: processedProducts.length,
+       total: processedProducts.length,
+     });
+     setShowAll(false);
 
-      const processedImages = formatted
-        .filter((p) => p && p.imagen_principal)
-        .slice(0, 7)
-        .map((p, index) => ({
-          id: p.paquete_externo_id || `image-${index}`,
-          url: p.imagen_principal,
-          titulo:
-            p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
-          descripcion: "",
-          alt:
-            p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
-        }));
+     // Procesar imágenes para el carousel
+     const processedImages = formatted
+       .filter((p) => p && p.imagen_principal)
+       .slice(0, 7)
+       .map((p, index) => ({
+         id: p.paquete_externo_id || `image-${index}`,
+         url: p.imagen_principal,
+         titulo:
+           p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
+         descripcion: "",
+         alt: p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
+       }));
 
-      setImages(processedImages);
-    } catch (err) {
-      console.error("Error cargando productos:", err);
-      setError(`Error al cargar productos: ${err.message}`);
-      setProducts([]);
-      setImages([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+     setImages(processedImages);
+   } catch (err) {
+     console.error("Error cargando productos:", err);
+     setError(`Error al cargar productos: ${err.message}`);
+     setProducts([]);
+     setImages([]);
+   } finally {
+     setLoading(false);
+   }
+ };
 
   useEffect(() => {
     fetchProducts();
@@ -97,26 +101,20 @@ function App() {
     setError(null);
 
     try {
+      // Usar solo GET ya que el webhook no procesa filtros en POST
       const res = await fetch(
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         {
-          method: "POST",
+          method: "GET",
           headers: {
-            "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: JSON.stringify({
-            destino: "",
-            fecha: "",
-            salida: "",
-            viajeros: "2 adultos",
-            tipo: "paquetes",
-            buscar: false,
-          }),
         }
       );
 
-      if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
+      if (!res.ok) {
+        throw new Error(`Error del servidor: ${res.status}`);
+      }
 
       let data = {};
       const text = await res.text();
@@ -126,17 +124,20 @@ function App() {
         throw new Error("Respuesta vacía del servidor.");
       }
 
-      const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
-      const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
-      const totalCount = formatted.length;
+      // El webhook devuelve { paquetes: [...] }
+      const paquetes = data?.paquetes || [];
+      const totalCount = paquetes.length;
 
-      let paquetesFiltrados = formatted;
+      // Aplicar todos los filtros del lado cliente
+      let paquetesFiltrados = [...paquetes];
 
+      // Filtro por destino
       if (filters.destino && filters.destino.trim() !== "") {
         const destinoBuscado = filters.destino.toLowerCase();
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
           const destinos = paquete.destinos?.destino;
           if (!destinos) return false;
+
           if (Array.isArray(destinos)) {
             return destinos.some(
               (dest) =>
@@ -152,6 +153,7 @@ function App() {
         });
       }
 
+      // Filtro por salida
       if (filters.salida && filters.salida.trim() !== "") {
         const salidaBuscada = filters.salida.toLowerCase();
         paquetesFiltrados = paquetesFiltrados.filter((paquete) =>
@@ -159,11 +161,13 @@ function App() {
         );
       }
 
+      // Filtro por fecha
       if (filters.fecha && filters.fecha.trim() !== "") {
         const fechaBuscada = filters.fecha;
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
           const salidas = paquete.salidas?.salida;
           if (!salidas) return false;
+
           if (Array.isArray(salidas)) {
             return salidas.some(
               (salida) =>
@@ -179,22 +183,29 @@ function App() {
         });
       }
 
+      // Filtro por precio mínimo
       if (filters.precioMin && filters.precioMin.trim() !== "") {
         const precioMin = parseFloat(filters.precioMin);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const precio = parseFloat(paquete.doble_precio || 0);
+          const precio = parseFloat(
+            paquete.doble_precio || paquete.precio || 0
+          );
           return precio >= precioMin;
         });
       }
 
+      // Filtro por precio máximo
       if (filters.precioMax && filters.precioMax.trim() !== "") {
         const precioMax = parseFloat(filters.precioMax);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const precio = parseFloat(paquete.doble_precio || 0);
+          const precio = parseFloat(
+            paquete.doble_precio || paquete.precio || 0
+          );
           return precio <= precioMax;
         });
       }
 
+      // Filtro por duración mínima
       if (filters.duracionMin && filters.duracionMin.trim() !== "") {
         const duracionMin = parseInt(filters.duracionMin);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -203,6 +214,7 @@ function App() {
         });
       }
 
+      // Filtro por duración máxima
       if (filters.duracionMax && filters.duracionMax.trim() !== "") {
         const duracionMax = parseInt(filters.duracionMax);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -212,9 +224,9 @@ function App() {
       }
 
       const resultsCount = paquetesFiltrados.length;
-
       setResultsInfo({ results: resultsCount, total: totalCount });
 
+      // Procesar los productos filtrados
       const processedProducts = paquetesFiltrados
         .filter((p) => p && p.titulo)
         .map((p, index) => ({
@@ -234,6 +246,7 @@ function App() {
       setProducts(processedProducts);
       setShowAll(true);
 
+      // Mostrar mensaje si no hay resultados
       if (processedProducts.length === 0) {
         const activeFilters = Object.entries(filters)
           .filter(
@@ -248,15 +261,20 @@ function App() {
               precioMax: "Precio máximo",
               duracionMin: "Duración mínima",
               duracionMax: "Duración máxima",
+              viajeros: "Viajeros",
             };
             return `${filterNames[key] || key}: ${value}`;
           });
 
-        setError(
-          `No se encontraron paquetes con los filtros aplicados:\n\n${activeFilters.join(
-            "\n"
-          )}\n\nAjusta o elimina algunos filtros para ver más resultados.`
-        );
+        if (activeFilters.length > 0) {
+          setError(
+            `No se encontraron paquetes con los filtros aplicados:\n\n${activeFilters.join(
+              "\n"
+            )}\n\nAjusta o elimina algunos filtros para ver más resultados.`
+          );
+        } else {
+          setError("No hay paquetes disponibles en este momento.");
+        }
       }
     } catch (err) {
       console.error("Error al buscar paquetes:", err);
