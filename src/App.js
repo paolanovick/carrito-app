@@ -16,8 +16,9 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
-  const webhookUrl = process.env.REACT_APP_N8N_WEBHOOK;
-  console.log("Webhook:", process.env.REACT_APP_N8N_WEBHOOK);
+  const webhookUrl = process.env.REACT_APP_N8N_API;
+
+ 
 
 
   if (!webhookUrl) {
