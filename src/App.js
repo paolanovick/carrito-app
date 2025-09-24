@@ -20,14 +20,26 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const encodedUrl = encodeURIComponent(process.env.REACT_APP_N8N_WEBHOOK);
-      const res = await fetch(
-        `${process.env.REACT_APP_API_PROXY}${encodedUrl}`,
-        {
-          method: "GET",
-          headers: { Accept: "application/json" },
-        }
-      );
+      // Debug: Verificar variables de entorno
+      console.log("N8N_WEBHOOK:", process.env.REACT_APP_N8N_WEBHOOK);
+      console.log("API_PROXY:", process.env.REACT_APP_API_PROXY);
+
+      const webhookUrl = process.env.REACT_APP_N8N_WEBHOOK;
+      const apiProxy = process.env.REACT_APP_API_PROXY;
+
+      if (!webhookUrl || !apiProxy) {
+        throw new Error("Variables de entorno no configuradas correctamente");
+      }
+
+      const encodedUrl = encodeURIComponent(webhookUrl);
+      const finalUrl = `${apiProxy}=${encodedUrl}`;
+
+      console.log("Final URL:", finalUrl);
+
+      const res = await fetch(finalUrl, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      });
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
@@ -92,17 +104,24 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const query = new URLSearchParams(filters).toString();
-      const fullUrl = `${process.env.REACT_APP_N8N_WEBHOOK}?${query}`;
-      const encodedUrl = encodeURIComponent(fullUrl);
+      const webhookUrl = process.env.REACT_APP_N8N_WEBHOOK;
+      const apiProxy = process.env.REACT_APP_API_PROXY;
 
-      const res = await fetch(
-        `${process.env.REACT_APP_API_PROXY}${encodedUrl}`,
-        {
-          method: "GET",
-          headers: { Accept: "application/json" },
-        }
-      );
+      if (!webhookUrl || !apiProxy) {
+        throw new Error("Variables de entorno no configuradas correctamente");
+      }
+
+      const query = new URLSearchParams(filters).toString();
+      const fullUrl = `${webhookUrl}?${query}`;
+      const encodedUrl = encodeURIComponent(fullUrl);
+      const finalUrl = `${apiProxy}=${encodedUrl}`;
+
+      console.log("Search URL:", finalUrl);
+
+      const res = await fetch(finalUrl, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      });
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
