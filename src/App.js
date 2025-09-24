@@ -42,7 +42,8 @@ function App() {
      }
 
      // El webhook devuelve { paquetes: [...] } según tu configuración
-     const paquetes = data?.paquetes || [];
+    const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
+
      const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
      const processedProducts = formatted
