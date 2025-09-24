@@ -16,7 +16,11 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
-  const API_URL = process.env.REACT_APP_API_URL;
+  const API_URL =
+    process.env.REACT_APP_API_PROXY +
+    encodeURIComponent(
+      "https://subscription-collective-link-sealed.trycloudflare.com/webhook/api"
+    );
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -24,14 +28,14 @@ function App() {
 
     try {
       const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}), // sin filtros
+        method: "GET",
+        headers: { Accept: "application/json" },
       });
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
-      const data = await res.json();
+      const dataText = await res.text();
+      const data = dataText ? JSON.parse(dataText) : { paquetes: [] };
 
       const paquetes = data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
@@ -83,31 +87,33 @@ function App() {
     }
   };
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
   const handleSearch = async (filters) => {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(filters),
+      // Convertimos los filtros a query string
+      const queryParams = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value && value.trim() !== "") queryParams.append(key, value);
+      });
+
+      const res = await fetch(`${API_URL}&${queryParams.toString()}`, {
+        method: "GET",
+        headers: { Accept: "application/json" },
       });
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
-      const data = await res.json();
+      const dataText = await res.text();
+      const data = dataText ? JSON.parse(dataText) : { paquetes: [] };
 
       const paquetes = data?.paquetes || [];
       const totalCount = paquetes.length;
 
-      // Aplicar filtros del lado cliente (igual que antes)
       let paquetesFiltrados = [...paquetes];
 
+      // Aquí aplicamos filtros adicionales en el cliente (igual que antes)
       if (filters.destino && filters.destino.trim() !== "") {
         const destinoBuscado = filters.destino.toLowerCase();
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -128,7 +134,7 @@ function App() {
         });
       }
 
-      // Resto de filtros igual que tu código original...
+      // Resto de filtros: salida, fecha, precio, duración
       if (filters.salida && filters.salida.trim() !== "") {
         const salidaBuscada = filters.salida.toLowerCase();
         paquetesFiltrados = paquetesFiltrados.filter((paquete) =>
@@ -158,22 +164,18 @@ function App() {
 
       if (filters.precioMin && filters.precioMin.trim() !== "") {
         const precioMin = parseFloat(filters.precioMin);
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const precio = parseFloat(
-            paquete.doble_precio || paquete.precio || 0
-          );
-          return precio >= precioMin;
-        });
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (paquete) =>
+            parseFloat(paquete.doble_precio || paquete.precio || 0) >= precioMin
+        );
       }
 
       if (filters.precioMax && filters.precioMax.trim() !== "") {
         const precioMax = parseFloat(filters.precioMax);
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const precio = parseFloat(
-            paquete.doble_precio || paquete.precio || 0
-          );
-          return precio <= precioMax;
-        });
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (paquete) =>
+            parseFloat(paquete.doble_precio || paquete.precio || 0) <= precioMax
+        );
       }
 
       if (filters.duracionMin && filters.duracionMin.trim() !== "") {
