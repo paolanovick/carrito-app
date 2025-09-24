@@ -17,6 +17,8 @@ function App() {
   const [showAll, setShowAll] = useState(false);
 
   const webhookUrl = process.env.REACT_APP_N8N_WEBHOOK;
+  console.log("Webhook:", process.env.REACT_APP_N8N_WEBHOOK);
+
 
   if (!webhookUrl) {
     console.error("Variable de entorno REACT_APP_N8N_WEBHOOK no definida");
