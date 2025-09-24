@@ -16,29 +16,23 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
-  const API_URL = process.env.REACT_APP_API_PROXY; // usa la variable de entorno
-
   const fetchProducts = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({}), // si tu webhook necesita filtros, los podés pasar aquí
-      });
+      const res = await fetch(
+        `${process.env.REACT_APP_API_PROXY}/webhook/api`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        }
+      );
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
-      const text = await res.text();
-      let data = {};
-      if (text) {
-        const json = JSON.parse(text); // parse de allorigins
-        data = JSON.parse(json.contents); // parse del contenido real del webhook
-      }
+      const data = await res.json();
 
       const paquetes = data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
@@ -99,27 +93,105 @@ function App() {
     setError(null);
 
     try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(filters), // enviar filtros al webhook
-      });
+      const res = await fetch(
+        `${process.env.REACT_APP_API_PROXY}/webhook/api`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(filters),
+        }
+      );
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
-      const text = await res.text();
-      let data = {};
-      if (text) {
-        const json = JSON.parse(text);
-        data = JSON.parse(json.contents);
-      }
-
+      const data = await res.json();
       const paquetes = data?.paquetes || [];
       const totalCount = paquetes.length;
-
-      // Filtrado adicional del lado cliente si es necesario
       let paquetesFiltrados = [...paquetes];
-      // ... (aquí podés mantener todos tus filtros como en tu código actual)
+
+      // --- FILTROS (igual que antes) ---
+      if (filters.destino && filters.destino.trim() !== "") {
+        const destinoBuscado = filters.destino.toLowerCase();
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const destinos = paquete.destinos?.destino;
+          if (!destinos) return false;
+          if (Array.isArray(destinos)) {
+            return destinos.some(
+              (dest) =>
+                (dest.ciudad || "").toLowerCase().includes(destinoBuscado) ||
+                (dest.pais || "").toLowerCase().includes(destinoBuscado)
+            );
+          } else {
+            return (
+              (destinos.ciudad || "").toLowerCase().includes(destinoBuscado) ||
+              (destinos.pais || "").toLowerCase().includes(destinoBuscado)
+            );
+          }
+        });
+      }
+
+      if (filters.salida && filters.salida.trim() !== "") {
+        const salidaBuscada = filters.salida.toLowerCase();
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) =>
+          (paquete.origen || "").toLowerCase().includes(salidaBuscada)
+        );
+      }
+
+      if (filters.fecha && filters.fecha.trim() !== "") {
+        const fechaBuscada = filters.fecha;
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const salidas = paquete.salidas?.salida;
+          if (!salidas) return false;
+          if (Array.isArray(salidas)) {
+            return salidas.some(
+              (salida) =>
+                (salida.fecha_desde || "").includes(fechaBuscada) ||
+                (salida.fecha_hasta || "").includes(fechaBuscada)
+            );
+          } else {
+            return (
+              (salidas.fecha_desde || "").includes(fechaBuscada) ||
+              (salidas.fecha_hasta || "").includes(fechaBuscada)
+            );
+          }
+        });
+      }
+
+      if (filters.precioMin && filters.precioMin.trim() !== "") {
+        const precioMin = parseFloat(filters.precioMin);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const precio = parseFloat(
+            paquete.doble_precio || paquete.precio || 0
+          );
+          return precio >= precioMin;
+        });
+      }
+
+      if (filters.precioMax && filters.precioMax.trim() !== "") {
+        const precioMax = parseFloat(filters.precioMax);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const precio = parseFloat(
+            paquete.doble_precio || paquete.precio || 0
+          );
+          return precio <= precioMax;
+        });
+      }
+
+      if (filters.duracionMin && filters.duracionMin.trim() !== "") {
+        const duracionMin = parseInt(filters.duracionMin);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const noches = parseInt(paquete.cant_noches || 0);
+          return noches >= duracionMin;
+        });
+      }
+
+      if (filters.duracionMax && filters.duracionMax.trim() !== "") {
+        const duracionMax = parseInt(filters.duracionMax);
+        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+          const noches = parseInt(paquete.cant_noches || 0);
+          return noches <= duracionMax;
+        });
+      }
 
       const resultsCount = paquetesFiltrados.length;
       setResultsInfo({ results: resultsCount, total: totalCount });
@@ -144,7 +216,33 @@ function App() {
       setShowAll(true);
 
       if (processedProducts.length === 0) {
-        setError("No se encontraron paquetes con los filtros aplicados.");
+        const activeFilters = Object.entries(filters)
+          .filter(
+            ([key, value]) => value && value.trim() !== "" && key !== "tipo"
+          )
+          .map(([key, value]) => {
+            const filterNames = {
+              destino: "Destino",
+              salida: "Salida",
+              fecha: "Fecha",
+              precioMin: "Precio mínimo",
+              precioMax: "Precio máximo",
+              duracionMin: "Duración mínima",
+              duracionMax: "Duración máxima",
+              viajeros: "Viajeros",
+            };
+            return `${filterNames[key] || key}: ${value}`;
+          });
+
+        if (activeFilters.length > 0) {
+          setError(
+            `No se encontraron paquetes con los filtros aplicados:\n\n${activeFilters.join(
+              "\n"
+            )}\n\nAjusta o elimina algunos filtros para ver más resultados.`
+          );
+        } else {
+          setError("No hay paquetes disponibles en este momento.");
+        }
       }
     } catch (err) {
       console.error("Error al buscar paquetes:", err);
@@ -183,14 +281,12 @@ function App() {
       <div id="inicio">
         <CarouselList images={images} />
       </div>
-
       <SearchBar
         onSearch={handleSearch}
         onReset={handleReset}
         resultsCount={resultsInfo.results}
         totalCount={resultsInfo.total}
       />
-
       <main id="paquetes" className="main-content">
         <ProductList
           products={showAll ? products : products.slice(0, 10)}
@@ -216,14 +312,12 @@ function App() {
           </div>
         )}
       </main>
-
       {selectedProduct && (
         <Modal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
         />
       )}
-
       <footer id="contacto">
         <Footer />
       </footer>
