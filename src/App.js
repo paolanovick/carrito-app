@@ -19,21 +19,16 @@ function App() {
   const fetchProducts = async () => {
     setLoading(true);
     setError(null);
-
     try {
       const res = await fetch(
         `${process.env.REACT_APP_API_PROXY}/webhook/api`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
-        }
+        { method: "GET", headers: { Accept: "application/json" } }
       );
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
-      const data = await res.json();
-
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : { paquetes: [] };
       const paquetes = data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
@@ -91,25 +86,24 @@ function App() {
   const handleSearch = async (filters) => {
     setLoading(true);
     setError(null);
-
     try {
+      const query = new URLSearchParams(filters).toString();
       const res = await fetch(
-        `${process.env.REACT_APP_API_PROXY}/webhook/api`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(filters),
-        }
+        `${process.env.REACT_APP_API_PROXY}/webhook/api?${query}`,
+        { method: "GET", headers: { Accept: "application/json" } }
       );
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
-      const data = await res.json();
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : { paquetes: [] };
       const paquetes = data?.paquetes || [];
       const totalCount = paquetes.length;
+
+      // Aplicar filtros adicionales del lado cliente
       let paquetesFiltrados = [...paquetes];
 
-      // --- FILTROS (igual que antes) ---
+      // Filtros por destino, salida, fecha, precio y duración (igual que antes)
       if (filters.destino && filters.destino.trim() !== "") {
         const destinoBuscado = filters.destino.toLowerCase();
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -132,21 +126,21 @@ function App() {
 
       if (filters.salida && filters.salida.trim() !== "") {
         const salidaBuscada = filters.salida.toLowerCase();
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) =>
-          (paquete.origen || "").toLowerCase().includes(salidaBuscada)
+        paquetesFiltrados = paquetesFiltrados.filter((p) =>
+          (p.origen || "").toLowerCase().includes(salidaBuscada)
         );
       }
 
       if (filters.fecha && filters.fecha.trim() !== "") {
         const fechaBuscada = filters.fecha;
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const salidas = paquete.salidas?.salida;
+        paquetesFiltrados = paquetesFiltrados.filter((p) => {
+          const salidas = p.salidas?.salida;
           if (!salidas) return false;
           if (Array.isArray(salidas)) {
             return salidas.some(
-              (salida) =>
-                (salida.fecha_desde || "").includes(fechaBuscada) ||
-                (salida.fecha_hasta || "").includes(fechaBuscada)
+              (s) =>
+                (s.fecha_desde || "").includes(fechaBuscada) ||
+                (s.fecha_hasta || "").includes(fechaBuscada)
             );
           } else {
             return (
@@ -159,38 +153,30 @@ function App() {
 
       if (filters.precioMin && filters.precioMin.trim() !== "") {
         const precioMin = parseFloat(filters.precioMin);
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const precio = parseFloat(
-            paquete.doble_precio || paquete.precio || 0
-          );
-          return precio >= precioMin;
-        });
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (p) => parseFloat(p.doble_precio || p.precio || 0) >= precioMin
+        );
       }
 
       if (filters.precioMax && filters.precioMax.trim() !== "") {
         const precioMax = parseFloat(filters.precioMax);
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const precio = parseFloat(
-            paquete.doble_precio || paquete.precio || 0
-          );
-          return precio <= precioMax;
-        });
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (p) => parseFloat(p.doble_precio || p.precio || 0) <= precioMax
+        );
       }
 
       if (filters.duracionMin && filters.duracionMin.trim() !== "") {
         const duracionMin = parseInt(filters.duracionMin);
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const noches = parseInt(paquete.cant_noches || 0);
-          return noches >= duracionMin;
-        });
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (p) => parseInt(p.cant_noches || 0) >= duracionMin
+        );
       }
 
       if (filters.duracionMax && filters.duracionMax.trim() !== "") {
         const duracionMax = parseInt(filters.duracionMax);
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const noches = parseInt(paquete.cant_noches || 0);
-          return noches <= duracionMax;
-        });
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (p) => parseInt(p.cant_noches || 0) <= duracionMax
+        );
       }
 
       const resultsCount = paquetesFiltrados.length;
@@ -233,16 +219,13 @@ function App() {
             };
             return `${filterNames[key] || key}: ${value}`;
           });
-
-        if (activeFilters.length > 0) {
-          setError(
-            `No se encontraron paquetes con los filtros aplicados:\n\n${activeFilters.join(
-              "\n"
-            )}\n\nAjusta o elimina algunos filtros para ver más resultados.`
-          );
-        } else {
-          setError("No hay paquetes disponibles en este momento.");
-        }
+        setError(
+          activeFilters.length > 0
+            ? `No se encontraron paquetes con los filtros aplicados:\n\n${activeFilters.join(
+                "\n"
+              )}\n\nAjusta o elimina algunos filtros para ver más resultados.`
+            : "No hay paquetes disponibles en este momento."
+        );
       }
     } catch (err) {
       console.error("Error al buscar paquetes:", err);
