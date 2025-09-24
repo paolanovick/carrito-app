@@ -16,14 +16,12 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
-  const webhookUrl = process.env.REACT_APP_N8N_API;
+ const webhookUrl = process.env.REACT_APP_N8N_API;
 
- 
+ if (!webhookUrl) {
+   console.error("Variable de entorno REACT_APP_N8N_API no definida");
+ }
 
-
-  if (!webhookUrl) {
-    console.error("Variable de entorno REACT_APP_N8N_WEBHOOK no definida");
-  }
 
  const fetchProducts = async () => {
    setLoading(true);
