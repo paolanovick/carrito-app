@@ -16,255 +16,260 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
-  const fetchProducts = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Debug: Verificar variables de entorno
-      console.log("N8N_WEBHOOK:", process.env.REACT_APP_N8N_WEBHOOK);
-      console.log("API_PROXY:", process.env.REACT_APP_API_PROXY);
+  const webhookUrl = process.env.REACT_APP_N8N_WEBHOOK;
 
-      const webhookUrl = process.env.REACT_APP_N8N_WEBHOOK;
-      const apiProxy = process.env.REACT_APP_API_PROXY;
+  if (!webhookUrl) {
+    console.error("Variable de entorno REACT_APP_N8N_WEBHOOK no definida");
+  }
 
-      if (!webhookUrl || !apiProxy) {
-        throw new Error("Variables de entorno no configuradas correctamente");
-      }
+ const fetchProducts = async () => {
+   setLoading(true);
+   setError(null);
+   try {
+     // Usar la variable correcta según el endpoint deseado
+     const webhookUrl = process.env.REACT_APP_N8N_API; // o REACT_APP_N8N_CAROUSEL, depende el caso
+     const apiProxy = process.env.REACT_APP_API_PROXY;
 
-      const encodedUrl = encodeURIComponent(webhookUrl);
-      const finalUrl = `${apiProxy}=${encodedUrl}`;
+     if (!webhookUrl || !apiProxy) {
+       throw new Error("Variables de entorno no configuradas correctamente");
+     }
 
-      console.log("Final URL:", finalUrl);
+     const encodedUrl = encodeURIComponent(webhookUrl);
+     const finalUrl = `${apiProxy}=${encodedUrl}`;
 
-      const res = await fetch(finalUrl, {
-        method: "GET",
-        headers: { Accept: "application/json" },
-      });
+     console.log("Final URL:", finalUrl);
 
-      if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
+     const res = await fetch(finalUrl, {
+       method: "GET",
+       headers: { Accept: "application/json" },
+     });
 
-      const response = await res.json();
-      const text = response.contents;
-      const data = text ? JSON.parse(text) : { paquetes: [] };
-      const paquetes = data?.paquetes || [];
-      const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
+     if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
-      const processedProducts = formatted
-        .filter((p) => p && p.titulo)
-        .map((p, index) => ({
-          id: p.paquete_externo_id || `package-${index}`,
-          titulo: p.titulo?.replace(/<[^>]*>/g, "").trim() || "Sin título",
-          imagen_principal:
-            p.imagen_principal || "https://via.placeholder.com/200",
-          url: p.url?.trim() || "#",
-          cant_noches: parseInt(p.cant_noches) || 0,
-          doble_precio: parseFloat(p.doble_precio || p.precio || 0),
-          destinoCiudad:
-            p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
-          destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
-          rawData: p,
-        }));
+     const response = await res.json();
+     const text = response.contents;
+     const data = text ? JSON.parse(text) : { paquetes: [] };
+     const paquetes = data?.paquetes || [];
+     const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
-      setProducts(processedProducts);
-      setResultsInfo({
-        results: processedProducts.length,
-        total: processedProducts.length,
-      });
-      setShowAll(false);
+     const processedProducts = formatted
+       .filter((p) => p && p.titulo)
+       .map((p, index) => ({
+         id: p.paquete_externo_id || `package-${index}`,
+         titulo: p.titulo?.replace(/<[^>]*>/g, "").trim() || "Sin título",
+         imagen_principal:
+           p.imagen_principal || "https://via.placeholder.com/200",
+         url: p.url?.trim() || "#",
+         cant_noches: parseInt(p.cant_noches) || 0,
+         doble_precio: parseFloat(p.doble_precio || p.precio || 0),
+         destinoCiudad:
+           p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
+         destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
+         rawData: p,
+       }));
 
-      const processedImages = formatted
-        .filter((p) => p && p.imagen_principal)
-        .slice(0, 7)
-        .map((p, index) => ({
-          id: p.paquete_externo_id || `image-${index}`,
-          url: p.imagen_principal,
-          titulo:
-            p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
-          descripcion: "",
-          alt:
-            p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
-        }));
+     setProducts(processedProducts);
+     setResultsInfo({
+       results: processedProducts.length,
+       total: processedProducts.length,
+     });
+     setShowAll(false);
 
-      setImages(processedImages);
-    } catch (err) {
-      console.error("Error cargando productos:", err);
-      setError(`Error al cargar productos: ${err.message}`);
-      setProducts([]);
-      setImages([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+     const processedImages = formatted
+       .filter((p) => p && p.imagen_principal)
+       .slice(0, 7)
+       .map((p, index) => ({
+         id: p.paquete_externo_id || `image-${index}`,
+         url: p.imagen_principal,
+         titulo:
+           p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
+         descripcion: "",
+         alt: p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
+       }));
+
+     setImages(processedImages);
+   } catch (err) {
+     console.error("Error cargando productos:", err);
+     setError(`Error al cargar productos: ${err.message}`);
+     setProducts([]);
+     setImages([]);
+   } finally {
+     setLoading(false);
+   }
+ };
+
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  const handleSearch = async (filters) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const webhookUrl = process.env.REACT_APP_N8N_WEBHOOK;
-      const apiProxy = process.env.REACT_APP_API_PROXY;
+ const handleSearch = async (filters) => {
+   setLoading(true);
+   setError(null);
+   try {
+     const webhookUrl = process.env.REACT_APP_N8N_SEARCH; // <--- Cambiado aquí
+     const apiProxy = process.env.REACT_APP_API_PROXY;
 
-      if (!webhookUrl || !apiProxy) {
-        throw new Error("Variables de entorno no configuradas correctamente");
-      }
+     if (!webhookUrl || !apiProxy) {
+       throw new Error("Variables de entorno no configuradas correctamente");
+     }
 
-      const query = new URLSearchParams(filters).toString();
-      const fullUrl = `${webhookUrl}?${query}`;
-      const encodedUrl = encodeURIComponent(fullUrl);
-      const finalUrl = `${apiProxy}=${encodedUrl}`;
+     // ... resto del código igual
 
-      console.log("Search URL:", finalUrl);
+     const query = new URLSearchParams(filters).toString();
+     const fullUrl = `${webhookUrl}?${query}`;
+     const encodedUrl = encodeURIComponent(fullUrl);
+     const finalUrl = `${apiProxy}=${encodedUrl}`;
 
-      const res = await fetch(finalUrl, {
-        method: "GET",
-        headers: { Accept: "application/json" },
-      });
+     console.log("Search URL:", finalUrl);
 
-      if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
+     const res = await fetch(finalUrl, {
+       method: "GET",
+       headers: { Accept: "application/json" },
+     });
 
-      const response = await res.json();
-      const text = response.contents;
-      const data = text ? JSON.parse(text) : { paquetes: [] };
-      const paquetes = data?.paquetes || [];
-      const totalCount = paquetes.length;
+     if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
-      // Aplicar filtros adicionales del lado cliente
-      let paquetesFiltrados = [...paquetes];
+     const response = await res.json();
+     const text = response.contents;
+     const data = text ? JSON.parse(text) : { paquetes: [] };
+     const paquetes = data?.paquetes || [];
+     const totalCount = paquetes.length;
 
-      // Filtros por destino, salida, fecha, precio y duración (igual que antes)
-      if (filters.destino && filters.destino.trim() !== "") {
-        const destinoBuscado = filters.destino.toLowerCase();
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const destinos = paquete.destinos?.destino;
-          if (!destinos) return false;
-          if (Array.isArray(destinos)) {
-            return destinos.some(
-              (dest) =>
-                (dest.ciudad || "").toLowerCase().includes(destinoBuscado) ||
-                (dest.pais || "").toLowerCase().includes(destinoBuscado)
-            );
-          } else {
-            return (
-              (destinos.ciudad || "").toLowerCase().includes(destinoBuscado) ||
-              (destinos.pais || "").toLowerCase().includes(destinoBuscado)
-            );
-          }
-        });
-      }
+     // Aplicar filtros adicionales del lado cliente
+     let paquetesFiltrados = [...paquetes];
 
-      if (filters.salida && filters.salida.trim() !== "") {
-        const salidaBuscada = filters.salida.toLowerCase();
-        paquetesFiltrados = paquetesFiltrados.filter((p) =>
-          (p.origen || "").toLowerCase().includes(salidaBuscada)
-        );
-      }
+     // Filtros por destino, salida, fecha, precio y duración (igual que antes)
+     if (filters.destino && filters.destino.trim() !== "") {
+       const destinoBuscado = filters.destino.toLowerCase();
+       paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
+         const destinos = paquete.destinos?.destino;
+         if (!destinos) return false;
+         if (Array.isArray(destinos)) {
+           return destinos.some(
+             (dest) =>
+               (dest.ciudad || "").toLowerCase().includes(destinoBuscado) ||
+               (dest.pais || "").toLowerCase().includes(destinoBuscado)
+           );
+         } else {
+           return (
+             (destinos.ciudad || "").toLowerCase().includes(destinoBuscado) ||
+             (destinos.pais || "").toLowerCase().includes(destinoBuscado)
+           );
+         }
+       });
+     }
 
-      if (filters.fecha && filters.fecha.trim() !== "") {
-        const fechaBuscada = filters.fecha;
-        paquetesFiltrados = paquetesFiltrados.filter((p) => {
-          const salidas = p.salidas?.salida;
-          if (!salidas) return false;
-          if (Array.isArray(salidas)) {
-            return salidas.some(
-              (s) =>
-                (s.fecha_desde || "").includes(fechaBuscada) ||
-                (s.fecha_hasta || "").includes(fechaBuscada)
-            );
-          } else {
-            return (
-              (salidas.fecha_desde || "").includes(fechaBuscada) ||
-              (salidas.fecha_hasta || "").includes(fechaBuscada)
-            );
-          }
-        });
-      }
+     if (filters.salida && filters.salida.trim() !== "") {
+       const salidaBuscada = filters.salida.toLowerCase();
+       paquetesFiltrados = paquetesFiltrados.filter((p) =>
+         (p.origen || "").toLowerCase().includes(salidaBuscada)
+       );
+     }
 
-      if (filters.precioMin && filters.precioMin.trim() !== "") {
-        const precioMin = parseFloat(filters.precioMin);
-        paquetesFiltrados = paquetesFiltrados.filter(
-          (p) => parseFloat(p.doble_precio || p.precio || 0) >= precioMin
-        );
-      }
+     if (filters.fecha && filters.fecha.trim() !== "") {
+       const fechaBuscada = filters.fecha;
+       paquetesFiltrados = paquetesFiltrados.filter((p) => {
+         const salidas = p.salidas?.salida;
+         if (!salidas) return false;
+         if (Array.isArray(salidas)) {
+           return salidas.some(
+             (s) =>
+               (s.fecha_desde || "").includes(fechaBuscada) ||
+               (s.fecha_hasta || "").includes(fechaBuscada)
+           );
+         } else {
+           return (
+             (salidas.fecha_desde || "").includes(fechaBuscada) ||
+             (salidas.fecha_hasta || "").includes(fechaBuscada)
+           );
+         }
+       });
+     }
 
-      if (filters.precioMax && filters.precioMax.trim() !== "") {
-        const precioMax = parseFloat(filters.precioMax);
-        paquetesFiltrados = paquetesFiltrados.filter(
-          (p) => parseFloat(p.doble_precio || p.precio || 0) <= precioMax
-        );
-      }
+     if (filters.precioMin && filters.precioMin.trim() !== "") {
+       const precioMin = parseFloat(filters.precioMin);
+       paquetesFiltrados = paquetesFiltrados.filter(
+         (p) => parseFloat(p.doble_precio || p.precio || 0) >= precioMin
+       );
+     }
 
-      if (filters.duracionMin && filters.duracionMin.trim() !== "") {
-        const duracionMin = parseInt(filters.duracionMin);
-        paquetesFiltrados = paquetesFiltrados.filter(
-          (p) => parseInt(p.cant_noches || 0) >= duracionMin
-        );
-      }
+     if (filters.precioMax && filters.precioMax.trim() !== "") {
+       const precioMax = parseFloat(filters.precioMax);
+       paquetesFiltrados = paquetesFiltrados.filter(
+         (p) => parseFloat(p.doble_precio || p.precio || 0) <= precioMax
+       );
+     }
 
-      if (filters.duracionMax && filters.duracionMax.trim() !== "") {
-        const duracionMax = parseInt(filters.duracionMax);
-        paquetesFiltrados = paquetesFiltrados.filter(
-          (p) => parseInt(p.cant_noches || 0) <= duracionMax
-        );
-      }
+     if (filters.duracionMin && filters.duracionMin.trim() !== "") {
+       const duracionMin = parseInt(filters.duracionMin);
+       paquetesFiltrados = paquetesFiltrados.filter(
+         (p) => parseInt(p.cant_noches || 0) >= duracionMin
+       );
+     }
 
-      const resultsCount = paquetesFiltrados.length;
-      setResultsInfo({ results: resultsCount, total: totalCount });
+     if (filters.duracionMax && filters.duracionMax.trim() !== "") {
+       const duracionMax = parseInt(filters.duracionMax);
+       paquetesFiltrados = paquetesFiltrados.filter(
+         (p) => parseInt(p.cant_noches || 0) <= duracionMax
+       );
+     }
 
-      const processedProducts = paquetesFiltrados
-        .filter((p) => p && p.titulo)
-        .map((p, index) => ({
-          id: p.paquete_externo_id || `package-${index}`,
-          titulo: p.titulo?.replace(/<[^>]*>/g, "").trim() || "Sin título",
-          imagen_principal:
-            p.imagen_principal || "https://via.placeholder.com/200",
-          url: p.url?.trim() || "#",
-          cant_noches: parseInt(p.cant_noches) || 0,
-          doble_precio: parseFloat(p.doble_precio || p.precio || 0),
-          destinoCiudad:
-            p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
-          destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
-          rawData: p,
-        }));
+     const resultsCount = paquetesFiltrados.length;
+     setResultsInfo({ results: resultsCount, total: totalCount });
 
-      setProducts(processedProducts);
-      setShowAll(true);
+     const processedProducts = paquetesFiltrados
+       .filter((p) => p && p.titulo)
+       .map((p, index) => ({
+         id: p.paquete_externo_id || `package-${index}`,
+         titulo: p.titulo?.replace(/<[^>]*>/g, "").trim() || "Sin título",
+         imagen_principal:
+           p.imagen_principal || "https://via.placeholder.com/200",
+         url: p.url?.trim() || "#",
+         cant_noches: parseInt(p.cant_noches) || 0,
+         doble_precio: parseFloat(p.doble_precio || p.precio || 0),
+         destinoCiudad:
+           p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
+         destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
+         rawData: p,
+       }));
 
-      if (processedProducts.length === 0) {
-        const activeFilters = Object.entries(filters)
-          .filter(
-            ([key, value]) => value && value.trim() !== "" && key !== "tipo"
-          )
-          .map(([key, value]) => {
-            const filterNames = {
-              destino: "Destino",
-              salida: "Salida",
-              fecha: "Fecha",
-              precioMin: "Precio mínimo",
-              precioMax: "Precio máximo",
-              duracionMin: "Duración mínima",
-              duracionMax: "Duración máxima",
-              viajeros: "Viajeros",
-            };
-            return `${filterNames[key] || key}: ${value}`;
-          });
-        setError(
-          activeFilters.length > 0
-            ? `No se encontraron paquetes con los filtros aplicados:\n\n${activeFilters.join(
-                "\n"
-              )}\n\nAjusta o elimina algunos filtros para ver más resultados.`
-            : "No hay paquetes disponibles en este momento."
-        );
-      }
-    } catch (err) {
-      console.error("Error al buscar paquetes:", err);
-      setError(`No se pudo realizar la búsqueda: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+     setProducts(processedProducts);
+     setShowAll(true);
+
+     if (processedProducts.length === 0) {
+       const activeFilters = Object.entries(filters)
+         .filter(
+           ([key, value]) => value && value.trim() !== "" && key !== "tipo"
+         )
+         .map(([key, value]) => {
+           const filterNames = {
+             destino: "Destino",
+             salida: "Salida",
+             fecha: "Fecha",
+             precioMin: "Precio mínimo",
+             precioMax: "Precio máximo",
+             duracionMin: "Duración mínima",
+             duracionMax: "Duración máxima",
+             viajeros: "Viajeros",
+           };
+           return `${filterNames[key] || key}: ${value}`;
+         });
+       setError(
+         activeFilters.length > 0
+           ? `No se encontraron paquetes con los filtros aplicados:\n\n${activeFilters.join(
+               "\n"
+             )}\n\nAjusta o elimina algunos filtros para ver más resultados.`
+           : "No hay paquetes disponibles en este momento."
+       );
+     }
+   } catch (err) {
+     console.error("Error al buscar paquetes:", err);
+     setError(`No se pudo realizar la búsqueda: ${err.message}`);
+   } finally {
+     setLoading(false);
+   }
+ };
 
   const handleReset = async () => {
     await fetchProducts();
