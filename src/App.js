@@ -16,82 +16,82 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
- const fetchProducts = async () => {
-   setLoading(true);
-   setError(null);
+  const fetchProducts = async () => {
+    setLoading(true);
+    setError(null);
 
-   try {
-     const res = await fetch(
-       "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
-       {
-         method: "GET",
-         headers: {
-           Accept: "application/json",
-         },
-       }
-     );
+    try {
+      const res = await fetch(
+        "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
+        {
+          method: "POST", // <-- cambiado a POST
+          headers: {
+            "Content-Type": "application/json", // <-- necesario para POST
+            Accept: "application/json",
+          },
+          body: JSON.stringify({}), // <-- body vacío al cargar todos los productos
+        }
+      );
 
-     if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
+      if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
-     let data = {};
-     const text = await res.text();
-     if (text) {
-       data = JSON.parse(text);
-     } else {
-       throw new Error("Respuesta vacía del servidor.");
-     }
+      let data = {};
+      const text = await res.text();
+      if (text) {
+        data = JSON.parse(text);
+      } else {
+        throw new Error("Respuesta vacía del servidor.");
+      }
 
-     // El webhook devuelve { paquetes: [...] } según tu configuración
-    const paquetes = data?.root?.paquetes?.paquete || data?.paquetes || [];
+      const paquetes = data?.paquetes || [];
+      const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
-     const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
+      const processedProducts = formatted
+        .filter((p) => p && p.titulo)
+        .map((p, index) => ({
+          id: p.paquete_externo_id || `package-${index}`,
+          titulo: p.titulo?.replace(/<[^>]*>/g, "").trim() || "Sin título",
+          imagen_principal:
+            p.imagen_principal || "https://via.placeholder.com/200",
+          url: p.url?.trim() || "#",
+          cant_noches: parseInt(p.cant_noches) || 0,
+          doble_precio: parseFloat(p.doble_precio || p.precio || 0),
+          destinoCiudad:
+            p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
+          destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
+          rawData: p,
+        }));
 
-     const processedProducts = formatted
-       .filter((p) => p && p.titulo)
-       .map((p, index) => ({
-         id: p.paquete_externo_id || `package-${index}`,
-         titulo: p.titulo?.replace(/<[^>]*>/g, "").trim() || "Sin título",
-         imagen_principal:
-           p.imagen_principal || "https://via.placeholder.com/200",
-         url: p.url?.trim() || "#",
-         cant_noches: parseInt(p.cant_noches) || 0,
-         doble_precio: parseFloat(p.doble_precio || p.precio || 0),
-         destinoCiudad:
-           p.destinos?.destino?.ciudad || p.ciudad || "Desconocido",
-         destinoPais: p.destinos?.destino?.pais || p.pais || "Desconocido",
-         rawData: p,
-       }));
+      setProducts(processedProducts);
+      setResultsInfo({
+        results: processedProducts.length,
+        total: processedProducts.length,
+      });
+      setShowAll(false);
 
-     setProducts(processedProducts);
-     setResultsInfo({
-       results: processedProducts.length,
-       total: processedProducts.length,
-     });
-     setShowAll(false);
+      const processedImages = formatted
+        .filter((p) => p && p.imagen_principal)
+        .slice(0, 7)
+        .map((p, index) => ({
+          id: p.paquete_externo_id || `image-${index}`,
+          url: p.imagen_principal,
+          titulo:
+            p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
+          descripcion: "",
+          alt:
+            p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
+        }));
 
-     // Procesar imágenes para el carousel
-     const processedImages = formatted
-       .filter((p) => p && p.imagen_principal)
-       .slice(0, 7)
-       .map((p, index) => ({
-         id: p.paquete_externo_id || `image-${index}`,
-         url: p.imagen_principal,
-         titulo:
-           p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
-         descripcion: "",
-         alt: p.titulo?.replace(/<[^>]*>/g, "").trim() || `Imagen ${index + 1}`,
-       }));
-
-     setImages(processedImages);
-   } catch (err) {
-     console.error("Error cargando productos:", err);
-     setError(`Error al cargar productos: ${err.message}`);
-     setProducts([]);
-     setImages([]);
-   } finally {
-     setLoading(false);
-   }
- };
+      setImages(processedImages);
+    } catch (err) {
+      console.error("Error cargando productos:", err);
+      setError(`Error al cargar productos: ${err.message}`);
+      setProducts([]);
+      setImages([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -102,14 +102,15 @@ function App() {
     setError(null);
 
     try {
-      // Usar solo GET ya que el webhook no procesa filtros en POST
       const res = await fetch(
         "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
         {
-          method: "GET",
+          method: "POST", // <-- cambiado a POST
           headers: {
+            "Content-Type": "application/json",
             Accept: "application/json",
           },
+          body: JSON.stringify(filters), // <-- enviamos los filtros al Webhook
         }
       );
 
@@ -125,11 +126,9 @@ function App() {
         throw new Error("Respuesta vacía del servidor.");
       }
 
-      // El webhook devuelve { paquetes: [...] }
       const paquetes = data?.paquetes || [];
       const totalCount = paquetes.length;
 
-      // Aplicar todos los filtros del lado cliente
       let paquetesFiltrados = [...paquetes];
 
       // Filtro por destino
@@ -227,7 +226,6 @@ function App() {
       const resultsCount = paquetesFiltrados.length;
       setResultsInfo({ results: resultsCount, total: totalCount });
 
-      // Procesar los productos filtrados
       const processedProducts = paquetesFiltrados
         .filter((p) => p && p.titulo)
         .map((p, index) => ({
@@ -247,7 +245,6 @@ function App() {
       setProducts(processedProducts);
       setShowAll(true);
 
-      // Mostrar mensaje si no hay resultados
       if (processedProducts.length === 0) {
         const activeFilters = Object.entries(filters)
           .filter(
