@@ -16,32 +16,22 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
+  const API_URL = process.env.REACT_APP_API_URL;
+
   const fetchProducts = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await fetch(
-        "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
-        {
-          method: "POST", // <-- cambiado a POST
-          headers: {
-            "Content-Type": "application/json", // <-- necesario para POST
-            Accept: "application/json",
-          },
-          body: JSON.stringify({}), // <-- body vacío al cargar todos los productos
-        }
-      );
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}), // sin filtros
+      });
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
-      let data = {};
-      const text = await res.text();
-      if (text) {
-        data = JSON.parse(text);
-      } else {
-        throw new Error("Respuesta vacía del servidor.");
-      }
+      const data = await res.json();
 
       const paquetes = data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
@@ -102,42 +92,27 @@ function App() {
     setError(null);
 
     try {
-      const res = await fetch(
-        "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api",
-        {
-          method: "POST", // <-- cambiado a POST
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify(filters), // <-- enviamos los filtros al Webhook
-        }
-      );
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(filters),
+      });
 
-      if (!res.ok) {
-        throw new Error(`Error del servidor: ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
-      let data = {};
-      const text = await res.text();
-      if (text) {
-        data = JSON.parse(text);
-      } else {
-        throw new Error("Respuesta vacía del servidor.");
-      }
+      const data = await res.json();
 
       const paquetes = data?.paquetes || [];
       const totalCount = paquetes.length;
 
+      // Aplicar filtros del lado cliente (igual que antes)
       let paquetesFiltrados = [...paquetes];
 
-      // Filtro por destino
       if (filters.destino && filters.destino.trim() !== "") {
         const destinoBuscado = filters.destino.toLowerCase();
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
           const destinos = paquete.destinos?.destino;
           if (!destinos) return false;
-
           if (Array.isArray(destinos)) {
             return destinos.some(
               (dest) =>
@@ -153,7 +128,7 @@ function App() {
         });
       }
 
-      // Filtro por salida
+      // Resto de filtros igual que tu código original...
       if (filters.salida && filters.salida.trim() !== "") {
         const salidaBuscada = filters.salida.toLowerCase();
         paquetesFiltrados = paquetesFiltrados.filter((paquete) =>
@@ -161,13 +136,11 @@ function App() {
         );
       }
 
-      // Filtro por fecha
       if (filters.fecha && filters.fecha.trim() !== "") {
         const fechaBuscada = filters.fecha;
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
           const salidas = paquete.salidas?.salida;
           if (!salidas) return false;
-
           if (Array.isArray(salidas)) {
             return salidas.some(
               (salida) =>
@@ -183,7 +156,6 @@ function App() {
         });
       }
 
-      // Filtro por precio mínimo
       if (filters.precioMin && filters.precioMin.trim() !== "") {
         const precioMin = parseFloat(filters.precioMin);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -194,7 +166,6 @@ function App() {
         });
       }
 
-      // Filtro por precio máximo
       if (filters.precioMax && filters.precioMax.trim() !== "") {
         const precioMax = parseFloat(filters.precioMax);
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
@@ -205,22 +176,18 @@ function App() {
         });
       }
 
-      // Filtro por duración mínima
       if (filters.duracionMin && filters.duracionMin.trim() !== "") {
         const duracionMin = parseInt(filters.duracionMin);
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const noches = parseInt(paquete.cant_noches || 0);
-          return noches >= duracionMin;
-        });
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (paquete) => parseInt(paquete.cant_noches || 0) >= duracionMin
+        );
       }
 
-      // Filtro por duración máxima
       if (filters.duracionMax && filters.duracionMax.trim() !== "") {
         const duracionMax = parseInt(filters.duracionMax);
-        paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
-          const noches = parseInt(paquete.cant_noches || 0);
-          return noches <= duracionMax;
-        });
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (paquete) => parseInt(paquete.cant_noches || 0) <= duracionMax
+        );
       }
 
       const resultsCount = paquetesFiltrados.length;
