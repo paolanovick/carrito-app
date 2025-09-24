@@ -19,13 +19,10 @@ function App() {
   const fetchProducts = async () => {
     setLoading(true);
     setError(null);
-
     try {
-      const apiUrl =
-        "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api";
-
+      const encodedUrl = encodeURIComponent(process.env.REACT_APP_N8N_WEBHOOK);
       const res = await fetch(
-        `${process.env.REACT_APP_API_PROXY}${encodeURIComponent(apiUrl)}`,
+        `${process.env.REACT_APP_API_PROXY}${encodedUrl}`,
         {
           method: "GET",
           headers: { Accept: "application/json" },
@@ -34,16 +31,9 @@ function App() {
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
-      const text = await res.text();
-      let data = {};
-      if (text) {
-        const parsed = JSON.parse(text);
-        // AllOrigins devuelve { contents: "..." }
-        data = JSON.parse(parsed.contents);
-      } else {
-        throw new Error("Respuesta vacía del servidor.");
-      }
-
+      const response = await res.json();
+      const text = response.contents;
+      const data = text ? JSON.parse(text) : { paquetes: [] };
       const paquetes = data?.paquetes || [];
       const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
@@ -101,13 +91,13 @@ function App() {
   const handleSearch = async (filters) => {
     setLoading(true);
     setError(null);
-
     try {
-      const apiUrl =
-        "https://introduced-furnished-pasta-rt.trycloudflare.com/webhook/api";
+      const query = new URLSearchParams(filters).toString();
+      const fullUrl = `${process.env.REACT_APP_N8N_WEBHOOK}?${query}`;
+      const encodedUrl = encodeURIComponent(fullUrl);
 
       const res = await fetch(
-        `${process.env.REACT_APP_API_PROXY}${encodeURIComponent(apiUrl)}`,
+        `${process.env.REACT_APP_API_PROXY}${encodedUrl}`,
         {
           method: "GET",
           headers: { Accept: "application/json" },
@@ -116,22 +106,17 @@ function App() {
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
-      const text = await res.text();
-      let data = {};
-      if (text) {
-        const parsed = JSON.parse(text);
-        data = JSON.parse(parsed.contents);
-      } else {
-        throw new Error("Respuesta vacía del servidor.");
-      }
-
+      const response = await res.json();
+      const text = response.contents;
+      const data = text ? JSON.parse(text) : { paquetes: [] };
       const paquetes = data?.paquetes || [];
       const totalCount = paquetes.length;
 
+      // Aplicar filtros adicionales del lado cliente
       let paquetesFiltrados = [...paquetes];
 
-      // ====== FILTROS CLIENTE ======
-      if (filters.destino) {
+      // Filtros por destino, salida, fecha, precio y duración (igual que antes)
+      if (filters.destino && filters.destino.trim() !== "") {
         const destinoBuscado = filters.destino.toLowerCase();
         paquetesFiltrados = paquetesFiltrados.filter((paquete) => {
           const destinos = paquete.destinos?.destino;
@@ -151,7 +136,60 @@ function App() {
         });
       }
 
-      // Agregar todos los filtros restantes (salida, fecha, precioMin, precioMax, duracionMin, duracionMax) igual que tu código original
+      if (filters.salida && filters.salida.trim() !== "") {
+        const salidaBuscada = filters.salida.toLowerCase();
+        paquetesFiltrados = paquetesFiltrados.filter((p) =>
+          (p.origen || "").toLowerCase().includes(salidaBuscada)
+        );
+      }
+
+      if (filters.fecha && filters.fecha.trim() !== "") {
+        const fechaBuscada = filters.fecha;
+        paquetesFiltrados = paquetesFiltrados.filter((p) => {
+          const salidas = p.salidas?.salida;
+          if (!salidas) return false;
+          if (Array.isArray(salidas)) {
+            return salidas.some(
+              (s) =>
+                (s.fecha_desde || "").includes(fechaBuscada) ||
+                (s.fecha_hasta || "").includes(fechaBuscada)
+            );
+          } else {
+            return (
+              (salidas.fecha_desde || "").includes(fechaBuscada) ||
+              (salidas.fecha_hasta || "").includes(fechaBuscada)
+            );
+          }
+        });
+      }
+
+      if (filters.precioMin && filters.precioMin.trim() !== "") {
+        const precioMin = parseFloat(filters.precioMin);
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (p) => parseFloat(p.doble_precio || p.precio || 0) >= precioMin
+        );
+      }
+
+      if (filters.precioMax && filters.precioMax.trim() !== "") {
+        const precioMax = parseFloat(filters.precioMax);
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (p) => parseFloat(p.doble_precio || p.precio || 0) <= precioMax
+        );
+      }
+
+      if (filters.duracionMin && filters.duracionMin.trim() !== "") {
+        const duracionMin = parseInt(filters.duracionMin);
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (p) => parseInt(p.cant_noches || 0) >= duracionMin
+        );
+      }
+
+      if (filters.duracionMax && filters.duracionMax.trim() !== "") {
+        const duracionMax = parseInt(filters.duracionMax);
+        paquetesFiltrados = paquetesFiltrados.filter(
+          (p) => parseInt(p.cant_noches || 0) <= duracionMax
+        );
+      }
 
       const resultsCount = paquetesFiltrados.length;
       setResultsInfo({ results: resultsCount, total: totalCount });
@@ -176,7 +214,30 @@ function App() {
       setShowAll(true);
 
       if (processedProducts.length === 0) {
-        setError("No se encontraron paquetes con los filtros aplicados.");
+        const activeFilters = Object.entries(filters)
+          .filter(
+            ([key, value]) => value && value.trim() !== "" && key !== "tipo"
+          )
+          .map(([key, value]) => {
+            const filterNames = {
+              destino: "Destino",
+              salida: "Salida",
+              fecha: "Fecha",
+              precioMin: "Precio mínimo",
+              precioMax: "Precio máximo",
+              duracionMin: "Duración mínima",
+              duracionMax: "Duración máxima",
+              viajeros: "Viajeros",
+            };
+            return `${filterNames[key] || key}: ${value}`;
+          });
+        setError(
+          activeFilters.length > 0
+            ? `No se encontraron paquetes con los filtros aplicados:\n\n${activeFilters.join(
+                "\n"
+              )}\n\nAjusta o elimina algunos filtros para ver más resultados.`
+            : "No hay paquetes disponibles en este momento."
+        );
       }
     } catch (err) {
       console.error("Error al buscar paquetes:", err);
@@ -215,14 +276,12 @@ function App() {
       <div id="inicio">
         <CarouselList images={images} />
       </div>
-
       <SearchBar
         onSearch={handleSearch}
         onReset={handleReset}
         resultsCount={resultsInfo.results}
         totalCount={resultsInfo.total}
       />
-
       <main id="paquetes" className="main-content">
         <ProductList
           products={showAll ? products : products.slice(0, 10)}
@@ -248,7 +307,6 @@ function App() {
           </div>
         )}
       </main>
-
       {selectedProduct && (
         <Modal
           product={selectedProduct}
