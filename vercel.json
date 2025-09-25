@@ -7,7 +7,7 @@
       "config": { "distDir": "build" }
     }
   ],
-  "routes": [
+  "rewrites": [
     { "source": "/(.*)", "destination": "/" }
   ]
 }
