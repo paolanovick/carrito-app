@@ -16,7 +16,19 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
- const webhookUrl = process.env.REACT_APP_N8N_API;
+  const webhookUrl = process.env.REACT_APP_N8N_API;
+  console.log("=== DEBUG ENV VARS ===");
+  console.log("NODE_ENV:", process.env.NODE_ENV);
+  console.log("REACT_APP_N8N_API:", process.env.REACT_APP_N8N_API);
+  console.log(
+    "All REACT_APP vars:",
+    Object.keys(process.env)
+      .filter((key) => key.startsWith("REACT_APP_"))
+      .reduce((obj, key) => {
+        obj[key] = process.env[key];
+        return obj;
+      }, {})
+  );
 
  if (!webhookUrl) {
    console.error("Variable de entorno REACT_APP_N8N_API no definida");
@@ -28,6 +40,18 @@ function App() {
    setError(null);
    try {
      const webhookUrl = process.env.REACT_APP_N8N_API;
+     console.log("=== DEBUG ENV VARS ===");
+     console.log("NODE_ENV:", process.env.NODE_ENV);
+     console.log("REACT_APP_N8N_API:", process.env.REACT_APP_N8N_API);
+     console.log(
+       "All REACT_APP vars:",
+       Object.keys(process.env)
+         .filter((key) => key.startsWith("REACT_APP_"))
+         .reduce((obj, key) => {
+           obj[key] = process.env[key];
+           return obj;
+         }, {})
+     );
 
      if (!webhookUrl) {
        throw new Error("Variable de entorno REACT_APP_N8N_API no configurada");
@@ -103,7 +127,19 @@ function App() {
    setLoading(true);
    setError(null);
    try {
-     const webhookUrl = process.env.REACT_APP_N8N_SEARCH; // <--- Cambiado aquí
+     const webhookUrl = process.env.REACT_APP_N8N_SEARCH;
+     console.log("=== DEBUG ENV VARS ===");
+     console.log("NODE_ENV:", process.env.NODE_ENV);
+     console.log("REACT_APP_N8N_API:", process.env.REACT_APP_N8N_API);
+     console.log(
+       "All REACT_APP vars:",
+       Object.keys(process.env)
+         .filter((key) => key.startsWith("REACT_APP_"))
+         .reduce((obj, key) => {
+           obj[key] = process.env[key];
+           return obj;
+         }, {})
+     );// <--- Cambiado aquí
      const apiProxy = process.env.REACT_APP_API_PROXY;
 
      if (!webhookUrl || !apiProxy) {
