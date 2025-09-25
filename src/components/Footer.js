@@ -10,8 +10,7 @@ const Footer = () => {
   const timeoutRef = useRef(null);
   const abortRef = useRef(null);
 
-  // CAMBIO AQUÍ: Cambiar de HTTP a tu API local
-  const WEBHOOK_URL = "/api/footer-newsletter";
+  const WEBHOOK_URL = "http://167.172.31.249:5678/webhook/footer-newsletter";
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
