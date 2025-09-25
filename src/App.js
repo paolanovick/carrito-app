@@ -6,6 +6,7 @@ import Footer from "./components/Footer";
 import Modal from "./components/Modal";
 import SearchBar from "./components/SearchBar";
 
+
 function App() {
   const [cart, setCart] = useState([]);
   const [products, setProducts] = useState([]);
