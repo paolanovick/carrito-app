@@ -27,29 +27,22 @@ function App() {
    setLoading(true);
    setError(null);
    try {
-     // Usar la variable correcta según el endpoint deseado
-     const webhookUrl = process.env.REACT_APP_N8N_API; // o REACT_APP_N8N_CAROUSEL, depende el caso
-     const apiProxy = process.env.REACT_APP_API_PROXY;
+     const webhookUrl = process.env.REACT_APP_N8N_API;
 
-     if (!webhookUrl || !apiProxy) {
-       throw new Error("Variables de entorno no configuradas correctamente");
+     if (!webhookUrl) {
+       throw new Error("Variable de entorno REACT_APP_N8N_API no configurada");
      }
 
-     const encodedUrl = encodeURIComponent(webhookUrl);
-     const finalUrl = `${apiProxy}=${encodedUrl}`;
+     console.log("Webhook URL:", webhookUrl);
 
-     console.log("Final URL:", finalUrl);
-
-     const res = await fetch(finalUrl, {
+     const res = await fetch(webhookUrl, {
        method: "GET",
        headers: { Accept: "application/json" },
      });
 
      if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
 
-     const response = await res.json();
-     const text = response.contents;
-     const data = text ? JSON.parse(text) : { paquetes: [] };
+     const data = await res.json();
      const paquetes = data?.paquetes || [];
      const formatted = Array.isArray(paquetes) ? paquetes : [paquetes];
 
@@ -98,6 +91,8 @@ function App() {
      setLoading(false);
    }
  };
+
+
 
 
   useEffect(() => {
