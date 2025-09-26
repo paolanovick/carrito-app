@@ -16,25 +16,21 @@ function App() {
   const [resultsInfo, setResultsInfo] = useState({ results: 0, total: 0 });
   const [showAll, setShowAll] = useState(false);
 
-  const API_BASE = process.env.REACT_APP_N8N_API_BASE; // Ej: https://ni-n8n.com
-
-  if (!API_BASE) {
-    console.error("Variable REACT_APP_N8N_API_BASE no definida");
-  }
+  // URL pública asignada por Cloudflare Tunnel
+  const API_BASE = "https://abcd1234.cloudflare-tunnel.com"; // reemplazá con tu subdominio real
 
   const fetchProducts = async () => {
     setLoading(true);
     setError(null);
     try {
-      const url = `${API_BASE}/webhook/carouselList`;
-      const res = await fetch(url, { headers: { Accept: "application/json" } });
+      const res = await fetch(`${API_BASE}/webhook/carouselList`, {
+        headers: { Accept: "application/json" },
+      });
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
       const data = await res.json();
-      const paquetes = data?.paquetes || [];
+      const paquetes = Array.isArray(data?.paquetes) ? data.paquetes : [];
 
-      const processedProducts = (
-        Array.isArray(paquetes) ? paquetes : [paquetes]
-      )
+      const processedProducts = paquetes
         .filter((p) => p && p.titulo)
         .map((p, index) => ({
           id: p.paquete_externo_id || `package-${index}`,
@@ -57,7 +53,7 @@ function App() {
       });
       setShowAll(false);
 
-      const processedImages = processedProducts.slice(0, 7).map((p, index) => ({
+      const processedImages = processedProducts.slice(0, 7).map((p) => ({
         id: p.id,
         url: p.imagen_principal,
         titulo: p.titulo,
@@ -75,88 +71,42 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
   const handleSearch = async (filters) => {
     setLoading(true);
     setError(null);
     try {
-      const url = `${API_BASE}/webhook/search?${new URLSearchParams(
-        filters
-      ).toString()}`;
-      const res = await fetch(url, { headers: { Accept: "application/json" } });
+      const query = new URLSearchParams(filters).toString();
+      const res = await fetch(`${API_BASE}/webhook/search?${query}`, {
+        headers: { Accept: "application/json" },
+      });
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
       const data = await res.json();
-      const paquetes = data?.paquetes || [];
+      const paquetes = Array.isArray(data?.paquetes) ? data.paquetes : [];
 
-      let filtered = Array.isArray(paquetes) ? paquetes : [paquetes];
-
-      // Filtros adicionales del lado cliente
+      // filtros locales
+      let filtered = paquetes;
       if (filters.destino) {
-        const destinoBuscado = filters.destino.toLowerCase();
+        const destino = filters.destino.toLowerCase();
         filtered = filtered.filter((p) => {
           const destinos = p.destinos?.destino;
           if (!destinos) return false;
           if (Array.isArray(destinos)) {
             return destinos.some(
               (d) =>
-                (d.ciudad || "").toLowerCase().includes(destinoBuscado) ||
-                (d.pais || "").toLowerCase().includes(destinoBuscado)
-            );
-          } else {
-            return (
-              (destinos.ciudad || "").toLowerCase().includes(destinoBuscado) ||
-              (destinos.pais || "").toLowerCase().includes(destinoBuscado)
+                (d.ciudad || "").toLowerCase().includes(destino) ||
+                (d.pais || "").toLowerCase().includes(destino)
             );
           }
+          return (
+            (destinos.ciudad || "").toLowerCase().includes(destino) ||
+            (destinos.pais || "").toLowerCase().includes(destino)
+          );
         });
       }
-
-      if (filters.salida) {
-        const salidaBuscada = filters.salida.toLowerCase();
-        filtered = filtered.filter((p) =>
-          (p.origen || "").toLowerCase().includes(salidaBuscada)
-        );
-      }
-
-      if (filters.fecha) {
-        const fechaBuscada = filters.fecha;
-        filtered = filtered.filter((p) => {
-          const salidas = p.salidas?.salida;
-          if (!salidas) return false;
-          if (Array.isArray(salidas)) {
-            return salidas.some(
-              (s) =>
-                (s.fecha_desde || "").includes(fechaBuscada) ||
-                (s.fecha_hasta || "").includes(fechaBuscada)
-            );
-          } else {
-            return (
-              (salidas.fecha_desde || "").includes(fechaBuscada) ||
-              (salidas.fecha_hasta || "").includes(fechaBuscada)
-            );
-          }
-        });
-      }
-
-      if (filters.precioMin)
-        filtered = filtered.filter(
-          (p) =>
-            parseFloat(p.doble_precio || p.precio || 0) >=
-            parseFloat(filters.precioMin)
-        );
-      if (filters.precioMax)
-        filtered = filtered.filter(
-          (p) =>
-            parseFloat(p.doble_precio || p.precio || 0) <=
-            parseFloat(filters.precioMax)
-        );
-      if (filters.duracionMin)
-        filtered = filtered.filter(
-          (p) => parseInt(p.cant_noches || 0) >= parseInt(filters.duracionMin)
-        );
-      if (filters.duracionMax)
-        filtered = filtered.filter(
-          (p) => parseInt(p.cant_noches || 0) <= parseInt(filters.duracionMax)
-        );
 
       const processedProducts = filtered
         .filter((p) => p && p.titulo)
@@ -176,14 +126,11 @@ function App() {
 
       setProducts(processedProducts);
       setShowAll(true);
-
-      if (processedProducts.length === 0) {
+      if (processedProducts.length === 0)
         setError("No se encontraron paquetes con los filtros aplicados.");
-      }
-
       setResultsInfo({
         results: processedProducts.length,
-        total: filtered.length,
+        total: paquetes.length,
       });
     } catch (err) {
       console.error("Error al buscar paquetes:", err);
@@ -198,19 +145,12 @@ function App() {
   const removeFromCart = (id) =>
     setCart((prev) => prev.filter((item) => item.id !== id));
 
- useEffect(() => {
-   fetchProducts();
-   // eslint-disable-next-line react-hooks/exhaustive-deps
- }, []);
-
-
   if (loading)
     return (
       <div className="loading-container">
         <p>Cargando productos...</p>
       </div>
     );
-
   if (error)
     return (
       <div className="error-container">
