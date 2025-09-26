@@ -11,7 +11,8 @@ export default async function handler(req, res) {
 
   try {
     // URL de tu webhook de n8n
-    const WEBHOOK_URL = "http://167.172.31.249:5678/webhook/footer-newsletter";
+   const WEBHOOK_URL = "https://ni-n8n.com/webhook/footer-newsletter";
+
 
     const response = await fetch(WEBHOOK_URL, {
       method: "POST",
